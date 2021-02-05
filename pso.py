@@ -2,33 +2,45 @@ from particle import Particle
 import numpy
 import random
 from pygame import *
+import benchmark_functions
 
 def pso(n_particles, n_iterations, benchmark_function):
 
-    init_velocity = numpy.array([2, 2]) #zeros(2)  # angle and distance  TODO
+    init_velocity = numpy.array([0, 0]) #zeros(2)  # angle and distance  TODO
 
     # initialize all particles
     particles = []
+    gbest = numpy.array([-1, -1])
+    gbest_fitness = -1
+
     for i_particle in range(n_particles):
         x_rand = random.uniform(0, 200)  # TODO
         y_rand = random.uniform(0, 200)  # TODO
         init_position = numpy.array([x_rand, y_rand])
-        particles.append(Particle(init_velocity, init_position))
+        particle = Particle(init_velocity, init_position)
 
-    gbest = numpy.array([-1, -1])
-    gbest_fitness = -1
+        if benchmark_function == 'rosenbrock':
+            p_fitness = benchmark_functions.rosenbrock(particle.p)
+
+        if benchmark_function == 'rastrigin':
+            p_fitness = benchmark_functions.rastrigin(particle.p)
+
+        if p_fitness > gbest_fitness:
+            gbest_fitness = p_fitness
+            gbest = particle.p
+
+        particles.append(particle)
+
     a = 0.9
     b = 2
     c = 2
     delta_t = 1
+    v_max = 30
 
     screen = display.set_mode((200, 200))
     # Fill screen white
     screen.fill((255, 255, 255))
 
-    # Draw a red circle at the center
-    # Remove the 1 to make it a filled circle
-    draw.circle(screen, (255, 0, 0), (250, 250), 250, 1)
 
     def waitFor(waitTime):  # waitTime in milliseconds
         screenCopy = screen.copy()
@@ -52,15 +64,18 @@ def pso(n_particles, n_iterations, benchmark_function):
         # update
         screen.fill((255, 255, 255))
         for particle in particles:
-            particle.update(gbest, a, b, c, delta_t)
+            particle.update(gbest, a, b, c, delta_t, v_max)
             particle.evaluate(benchmark_function)
             particle.display(screen)
 
             if particle.pbest_fitness > gbest_fitness:
                 gbest_fitness = particle.pbest_fitness
                 gbest = particle.pbest
-        n_iterations= n_iterations-1
+
+        n_iterations = n_iterations-1
+
         print(n_iterations)
+
         if n_iterations == 1:
             running = False
             for particle in particles:
@@ -84,4 +99,4 @@ def pso(n_particles, n_iterations, benchmark_function):
 if __name__ == '__main__':
 
 
-    pso(20, 100, 'rosenbrock')
+    pso(20, 100, 'rastrigin')
