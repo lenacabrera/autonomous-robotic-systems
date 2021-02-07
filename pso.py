@@ -4,9 +4,11 @@ import random
 from pygame import *
 import benchmark_functions
 
-def pso(n_particles, n_iterations, benchmark_function):
+def pso(n_particles, n_iterations, benchmark_function, a, b, c, delta_t, v_max, frame_range):
 
-    init_velocity = numpy.array([0, 0]) #zeros(2)  # angle and distance  TODO
+    # set velocity to zero
+    init_velocity = numpy.array([0, 0])
+    # set velocity to random value TODO add parameter
 
     # initialize all particles
     particles = []
@@ -14,8 +16,8 @@ def pso(n_particles, n_iterations, benchmark_function):
     gbest_fitness = -1
 
     for i_particle in range(n_particles):
-        x_rand = random.uniform(0, 200)  # TODO
-        y_rand = random.uniform(0, 200)  # TODO
+        x_rand = random.uniform(frame_range[0], frame_range[1])
+        y_rand = random.uniform(frame_range[0], frame_range[1])
         init_position = numpy.array([x_rand, y_rand])
         particle = Particle(init_velocity, init_position)
 
@@ -31,13 +33,10 @@ def pso(n_particles, n_iterations, benchmark_function):
 
         particles.append(particle)
 
-    a = 0.9
-    b = 2
-    c = 2
-    delta_t = 1
-    v_max = 30
 
-    screen = display.set_mode((200, 200))
+
+    # TODO look at other
+    screen = display.set_mode((2*frame_range[1], 2*frame_range[1]))
     # Fill screen white
     screen.fill((255, 255, 255))
 
@@ -64,9 +63,9 @@ def pso(n_particles, n_iterations, benchmark_function):
         # update
         screen.fill((255, 255, 255))
         for particle in particles:
-            particle.update(gbest, a, b, c, delta_t, v_max)
+            particle.update(gbest, a, b, c, delta_t, v_max, frame_range)
             particle.evaluate(benchmark_function)
-            particle.display(screen)
+            particle.display(screen, frame_range)
 
             if particle.pbest_fitness > gbest_fitness:
                 gbest_fitness = particle.pbest_fitness
@@ -99,4 +98,13 @@ def pso(n_particles, n_iterations, benchmark_function):
 if __name__ == '__main__':
 
 
-    pso(20, 100, 'rastrigin')
+    pso(n_particles=20,
+        n_iterations=100,
+        benchmark_function='rastrigin',
+        a=0.9,
+        b=2,
+        c=2,
+        delta_t=1,
+        v_max=30,
+        frame_range=[-100,100],
+    )
