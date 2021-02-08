@@ -1,10 +1,7 @@
 from particle import Particle
 import numpy
 import random
-from pygame import *
 import benchmark_functions
-
-import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -12,6 +9,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def pso(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delta_t, frame_range, random_init_v, v_max,
         oof_strategy):
+
     if random_init_v:
         # set velocity to random value
         init_velocity = numpy.array([random.uniform(-v_max, v_max), random.uniform(-v_max, v_max)])
@@ -48,7 +46,6 @@ def pso(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delta_t, 
     y_coordinates, x_coordinates, heat = create_heatmap_data(benchmark_function, frame_range)
     div = make_axes_locatable(ax)
     cax = div.append_axes('right', '5%', '5%')
-    # title = ax.text(0.5, 0.85, "", bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, transform=ax.transAxes, ha="center")
     x_iterations = []
     y_iterations = []
 
@@ -74,21 +71,15 @@ def pso(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delta_t, 
 
         def animate(i):
             ax.clear()
-            # ax.set_title('Iteration %s' % i)
             colormesh = plot_heatmap(y_coordinates, x_coordinates, heat, ax=ax)
             cax.cla()
             fig.colorbar(colormesh, cax=cax)
             x_pos = x_iterations[i]
             y_pos = y_iterations[i]
             print(i)
-            return plot_scatter(x_pos, y_pos, ax=ax)  # , title
+            return plot_scatter(x_pos, y_pos, ax=ax)
 
-        ani = animation.FuncAnimation(fig, animate, interval=20, blit=True, frames=n_iterations,
-                                      save_count=n_iterations)
-
-    # ani.save("movie.mp4")
-
-    return particles
+        animation.FuncAnimation(fig, animate, interval=20, blit=True, frames=n_iterations, save_count=n_iterations)
 
 
 def create_scatter_data(particles):
@@ -105,7 +96,7 @@ def create_scatter_data(particles):
 def create_heatmap_data(benchmark_function, frame_range):
     heatmap_data = []
 
-    x_coordinates = list(np.linspace(frame_range[0], frame_range[1], 200))
+    x_coordinates = list(numpy.linspace(frame_range[0], frame_range[1], 200))
     y_coordinates = x_coordinates
     for y in y_coordinates:
         new_row = []
@@ -119,14 +110,14 @@ def create_heatmap_data(benchmark_function, frame_range):
     return y_coordinates, x_coordinates, numpy.array(heatmap_data)
 
 
-def plot_scatter(x, y, ax=None, **kwargs):
+def plot_scatter(x, y, ax=None):
     if ax is None:
         ax = plt.gca()
     artists = [ax.scatter(x, y, c='white') for x, y in zip(x, y)]
     return artists
 
 
-def plot_heatmap(y_coordinates, x_coordinates, data, ax=None, **kwargs):
+def plot_heatmap(y_coordinates, x_coordinates, data, ax=None):
     if ax is None:
         ax = plt.gca()
     colormesh = ax.pcolormesh(y_coordinates, x_coordinates, data, shading='nearest')
@@ -134,18 +125,18 @@ def plot_heatmap(y_coordinates, x_coordinates, data, ax=None, **kwargs):
 
 
 if __name__ == '__main__':
-    pso(n_particles=20,  # 20
-        n_iterations=130,  # 100
-        benchmark_function='rosenbrock',
+    pso(n_particles=20,
+        n_iterations=130,
+        benchmark_function='rosenbrock',  # rastrigin, rosenbrock
         a=0.9,
         b=2,
         c=2,
         r_max=1,
         delta_t=1,
         frame_range=[-5, 5],
-        random_init_v=False,  # False=init with zero, True=random initi
+        random_init_v=False,  # False=init with zero, True=random init
 
-        v_max=1,  # 1, 5 -> performs well
+        v_max=5,  # 1, 5 -> performs well
         # "out of screen strategy"
         # 0=old position,
         # 1=change direction,

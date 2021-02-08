@@ -1,10 +1,6 @@
-# import pso
-# update velocity and position for one iteration
+
 import random
-
 import numpy
-from pygame import *
-
 import benchmark_functions
 
 
@@ -16,7 +12,6 @@ class Particle:
         self.pbest = position
         self.pbest_fitness = 0
         self.pos_history = []
-
 
     def update(self, gbest, a, b, c, r_max, delta_t, v_max, frame_range, oof_strategy):
         # update velocity and position for one iteration
@@ -31,7 +26,6 @@ class Particle:
             print("distance greater than v_max")
 
         p_new = self.p + v_new * delta_t
-        # p_new = self.p + self.v * delta_t
 
         # check if new position is outside of frame
         x_is_oof = p_new[0] < frame_range[0] or p_new[0] > frame_range[1]
