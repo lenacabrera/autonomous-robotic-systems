@@ -4,6 +4,11 @@ import random
 from pygame import *
 import benchmark_functions
 
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 
 def pso(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delta_t, v_max, frame_range, random_init_v,
         oof_strategy):
@@ -38,77 +43,121 @@ def pso(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delta_t, 
 
         particles.append(particle)
 
-    # TODO look at other
-    screen = display.set_mode((2 * frame_range[1], 2 * frame_range[1]))
-    # Fill screen white
-    screen.fill((255, 255, 255))
+    # init plot
+    fig, ax = plt.subplots()
+    y_coordinates, x_coordinates, heat = create_heatmap_data(benchmark_function, frame_range)
+    div = make_axes_locatable(ax)
+    cax = div.append_axes('right', '5%', '5%')
+    # title = ax.text(0.5, 0.85, "", bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, transform=ax.transAxes, ha="center")
+    x_iterations = []
+    y_iterations = []
 
-    def waitFor(waitTime):  # waitTime in milliseconds
-        screenCopy = screen.copy()
-        waitCount = 0
-        while waitCount < waitTime:
-            clock = time.Clock()
-            dt = clock.tick(60)  # 60 is your FPS here
-            waitCount += dt
-            event.pump()  # Tells pygame to handle it's event, instead of pygame.event.get()
-            screen.blit(screenCopy, (0, 0))
-            display.flip()
+    for iteration in range(n_iterations):
 
-    # Game loop: idea from: https://www.petercollingridge.co.uk/tutorials/pygame-physics-simulation/
-    running = True
-    while running:
-        # Properly quit (pygame will crash without this)
-        for e in event.get():
-            if e.type == QUIT:
-                running = False
-
-        # update
-        screen.fill((255, 255, 255))
         for particle in particles:
             particle.update(gbest, a, b, c, r_max, delta_t, v_max, frame_range, oof_strategy)
             particle.evaluate(benchmark_function)
-            particle.display(screen, frame_range)
 
-            if particle.pbest_fitness > gbest_fitness:
+            if particle.pbest_fitness < gbest_fitness:
                 gbest_fitness = particle.pbest_fitness
                 gbest = particle.pbest
 
-        n_iterations = n_iterations - 1
-        print(n_iterations)
-
-        if n_iterations == 1:
-            running = False
-            for particle in particles:
-                print(particle.p)
+        print(iteration)
 
         # decrease a
         decrease_amount = (0.9 - 0.4) / n_iterations
         a -= decrease_amount
 
-        waitFor(500)
-        display.flip()
-    quit()
+        x_pos, y_pos = create_scatter_data(particles)
+        x_iterations.append(x_pos)
+        y_iterations.append(y_pos)
+
+        def init():  # only required for blitting to give a clean slate.
+            plot_heatmap(y_coordinates, x_coordinates, heat, ax=ax)
+            ax.set_title('Iteration x')
+            return plot_scatter([], [], ax=ax)  # , title,
+
+        def animate(i):
+            ax.clear()
+            ax.set_title('Iteration %s' % i)
+            colormesh = plot_heatmap(y_coordinates, x_coordinates, heat, ax=ax)
+            cax.cla()
+            fig.colorbar(colormesh, cax=cax)
+            x_pos = x_iterations[i]
+            y_pos = y_iterations[i]
+            print(i)
+            return plot_scatter(x_pos, y_pos, ax=ax)  # , title
+
+        ani = animation.FuncAnimation(fig, animate, init_func=init, interval=20, blit=True, frames=n_iterations,
+                                      save_count=n_iterations)
+
+    # ani.save("./movie.mp4")
+
+    return particles
+
+
+def create_scatter_data(particles):
+    x_coordinates = []
+    y_coordinates = []
+
+    for particle in particles:
+        x_coordinates.append(particle.p[0])
+        y_coordinates.append(particle.p[1])
+
+    return x_coordinates, y_coordinates
+
+
+def create_heatmap_data(benchmark_function, frame_range):
+    heatmap_data = []
+
+    x_coordinates = list(np.linspace(frame_range[0], frame_range[1], 200))
+    y_coordinates = x_coordinates
+    for y in y_coordinates:
+        new_row = []
+        for x in x_coordinates:
+            if benchmark_function == "rosenbrock":
+                new_row.append(benchmark_functions.rosenbrock([x, y]))
+            if benchmark_function == "rastrigin":
+                new_row.append(benchmark_functions.rastrigin([x, y]))
+        heatmap_data.append(new_row)
+
+    return y_coordinates, x_coordinates, numpy.array(heatmap_data)
+
+
+def plot_scatter(x, y, ax=None, **kwargs):
+    if ax is None:
+        ax = plt.gca()
+    artists = [ax.scatter(x, y, c='white') for x, y in zip(x, y)]
+    return artists
+
+
+def plot_heatmap(y_coordinates, x_coordinates, data, ax=None, **kwargs):
+    if ax is None:
+        ax = plt.gca()
+    colormesh = ax.pcolormesh(y_coordinates, x_coordinates, data, shading='nearest')
+    return colormesh
 
 
 if __name__ == '__main__':
-    pso(n_particles=20,
-        n_iterations=100,
-        benchmark_function='rastrigin',
+    pso(n_particles=20,  # 20
+        n_iterations=150,  # 100
+        benchmark_function='rosenbrock',
         a=0.9,
         b=2,
         c=2,
         r_max=1,
         delta_t=1,
-        v_max=30,
-        frame_range=[-100, 100],
-        random_init_v=False,
+        v_max=5,  # 1, 15
+        frame_range=[-5, 5],  # rastrigin
+        # frame_range=[-1, 1], # rosenbrock
+        random_init_v=False,  # False=init with zero, True=random initi
         # "out of screen strategy"
         # 0=old position,
         # 1=change direction,
         # 2=new random (r1, r2),
         # 3=only small step in new direction,
         # 4=old coordinate
-        oof_strategy=3
+        oof_strategy=0
         )
 
-    exit()
+    plt.show()

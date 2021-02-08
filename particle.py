@@ -16,14 +16,7 @@ class Particle:
         self.pbest = position
         self.pbest_fitness = 0
         self.pos_history = []
-        # self.performance = performance  # benchmark functions?
 
-        self.size = 5
-        self.colour = (0, 0, 255)
-        self.thickness = 5
-
-    def display(self, screen, frame_range):
-        draw.circle(screen, self.colour, (self.p[0] + frame_range[1], self.p[1] + frame_range[1]), self.size, self.thickness)
 
     def update(self, gbest, a, b, c, r_max, delta_t, v_max, frame_range, oof_strategy):
         # update velocity and position for one iteration
@@ -33,7 +26,6 @@ class Particle:
 
         distance = numpy.sqrt((v_new**2).sum(axis=0))
         if distance > v_max:
-            # v_new == v_max
             # keep old velocity
             v_new = self.v
             print("distance greater than v_max")
@@ -123,7 +115,7 @@ class Particle:
             p_fitness = benchmark_functions.rastrigin(self.p)
             pbest_fitness = benchmark_functions.rastrigin(self.pbest)
 
-        if pbest_fitness < p_fitness:
+        if pbest_fitness > p_fitness:
             self.pbest = self.p
             self.pbest_fitness = p_fitness
         else:
