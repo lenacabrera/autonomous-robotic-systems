@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+# This code was programmed by Kathrin Hartmann and Lena Cabrera
+
 
 def pso(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delta_t, frame_range, random_init_v, v_max,
         oof_strategy):
@@ -127,7 +129,7 @@ def plot_heatmap(y_coordinates, x_coordinates, data, ax=None):
 if __name__ == '__main__':
     pso(n_particles=20,
         n_iterations=130,
-        benchmark_function='rosenbrock',  # rastrigin, rosenbrock
+        benchmark_function='rastrigin',  # rastrigin, rosenbrock
         a=0.9,
         b=2,
         c=2,
