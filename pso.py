@@ -72,14 +72,9 @@ def pso(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delta_t, 
         x_iterations.append(x_pos)
         y_iterations.append(y_pos)
 
-        def init():  # only required for blitting to give a clean slate.
-            plot_heatmap(y_coordinates, x_coordinates, heat, ax=ax)
-            ax.set_title('Iteration x')
-            return plot_scatter([], [], ax=ax)  # , title,
-
         def animate(i):
             ax.clear()
-            ax.set_title('Iteration %s' % i)
+            # ax.set_title('Iteration %s' % i)
             colormesh = plot_heatmap(y_coordinates, x_coordinates, heat, ax=ax)
             cax.cla()
             fig.colorbar(colormesh, cax=cax)
@@ -88,10 +83,10 @@ def pso(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delta_t, 
             print(i)
             return plot_scatter(x_pos, y_pos, ax=ax)  # , title
 
-        ani = animation.FuncAnimation(fig, animate, init_func=init, interval=20, blit=True, frames=n_iterations,
+        ani = animation.FuncAnimation(fig, animate, interval=20, blit=True, frames=n_iterations,
                                       save_count=n_iterations)
 
-    # ani.save("./movie.mp4")
+    ani.save("movie.mp4")
 
     return particles
 
@@ -147,7 +142,7 @@ if __name__ == '__main__':
         c=2,
         r_max=1,
         delta_t=1,
-        v_max=5,  # 1, 15
+        v_max=50,  # 1, 15
         frame_range=[-5, 5],  # rastrigin
         # frame_range=[-1, 1], # rosenbrock
         random_init_v=False,  # False=init with zero, True=random initi
