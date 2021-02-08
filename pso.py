@@ -10,7 +10,7 @@ import matplotlib.animation as animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-def pso(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delta_t, v_max, frame_range, random_init_v,
+def pso(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delta_t, frame_range, random_init_v, v_max,
         oof_strategy):
     if random_init_v:
         # set velocity to random value
@@ -86,7 +86,7 @@ def pso(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delta_t, 
         ani = animation.FuncAnimation(fig, animate, interval=20, blit=True, frames=n_iterations,
                                       save_count=n_iterations)
 
-    ani.save("movie.mp4")
+    # ani.save("movie.mp4")
 
     return particles
 
@@ -135,24 +135,25 @@ def plot_heatmap(y_coordinates, x_coordinates, data, ax=None, **kwargs):
 
 if __name__ == '__main__':
     pso(n_particles=20,  # 20
-        n_iterations=150,  # 100
-        benchmark_function='rosenbrock',
+        n_iterations=130,  # 100
+        benchmark_function='rastrigin',
         a=0.9,
         b=2,
         c=2,
         r_max=1,
         delta_t=1,
-        v_max=50,  # 1, 15
         frame_range=[-5, 5],  # rastrigin
         # frame_range=[-1, 1], # rosenbrock
         random_init_v=False,  # False=init with zero, True=random initi
+
+        v_max=5,  # 1, 5 -> performs well
         # "out of screen strategy"
         # 0=old position,
         # 1=change direction,
         # 2=new random (r1, r2),
         # 3=only small step in new direction,
         # 4=old coordinate
-        oof_strategy=0
+        oof_strategy=4  # 4 is good
         )
 
     plt.show()
