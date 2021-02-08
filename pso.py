@@ -136,17 +136,16 @@ def plot_heatmap(y_coordinates, x_coordinates, data, ax=None, **kwargs):
 if __name__ == '__main__':
     pso(n_particles=20,  # 20
         n_iterations=130,  # 100
-        benchmark_function='rastrigin',
+        benchmark_function='rosenbrock',
         a=0.9,
         b=2,
         c=2,
         r_max=1,
         delta_t=1,
-        frame_range=[-5, 5],  # rastrigin
-        # frame_range=[-1, 1], # rosenbrock
+        frame_range=[-5, 5],
         random_init_v=False,  # False=init with zero, True=random initi
 
-        v_max=5,  # 1, 5 -> performs well
+        v_max=1,  # 1, 5 -> performs well
         # "out of screen strategy"
         # 0=old position,
         # 1=change direction,
