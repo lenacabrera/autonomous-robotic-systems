@@ -1,6 +1,6 @@
 import pygame
 import sys
-
+from robot import Robot
 
 
 def draw_walls(screen, env_width, env_height, wall_length, wall_thickness, wall_color):
@@ -51,7 +51,9 @@ if __name__ == '__main__':
     y = env_height / 2
     v = 6
     radius = env_width / 25
+    max_sensor_reach = 2 * radius
     robot_color = (153,204,255)
+    robot = Robot(x, y, radius, max_sensor_reach)
 
     # initialize pygame
     pygame.init()
@@ -69,18 +71,18 @@ if __name__ == '__main__':
 
             pressed_keys = pygame.key.get_pressed()
             if pressed_keys[pygame.K_UP]:
-                y -= v
+                robot.y -= v
             if pressed_keys[pygame.K_DOWN]:
-                y += v
+                robot.y += v
             if pressed_keys[pygame.K_LEFT]:
-                x -= v
+                robot.x -= v
             if pressed_keys[pygame.K_RIGHT]:
-                x += v
+                robot.x += v
 
             # clear screen
             screen.fill((255,255,255))
 
             draw_walls(screen, env_width, env_height, wall_length, wall_thickness, wall_color)
-            draw_robot(screen, x, y, radius, robot_color)
+            draw_robot(screen, robot.x, robot.y, robot.radius, robot_color)
             pygame.display.update()
             clock.tick(60)
