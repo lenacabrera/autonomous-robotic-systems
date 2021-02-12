@@ -2,6 +2,7 @@ import pygame
 import sys
 
 
+
 def draw_walls(screen, env_width, env_height, wall_length, wall_thickness, wall_color):
 
     # wall frame distance
