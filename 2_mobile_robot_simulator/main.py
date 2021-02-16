@@ -3,7 +3,6 @@ import sys
 from robot import Robot
 
 
-
 def draw_walls(screen, walls, wall_thickness, wall_color):
 
     # left
@@ -31,7 +30,7 @@ def draw_robot(screen, robot, robot_color, draw_sensors=False):
     pygame.draw.circle(surface=screen, color=robot_color, center=(robot.x, robot.y), radius=robot.radius)
     # orientation of robot
     pygame.draw.line(surface=screen, color=(0, 0, 0), width=2,
-                     start_pos=(robot.x, robot.y), end_pos=(robot.x + robot.radius, robot.y))
+                     start_pos=(robot.x, robot.y), end_pos=robot.orientation)
     # sensors
     if draw_sensors:
         for (x_sensor, y_sensor) in robot.sensor_list:
@@ -70,16 +69,16 @@ def init_walls_coordinates(env_width, env_height, wall_length):
 if __name__ == '__main__':
 
     # environment
-    env_width = 1000
+    env_width = 500
     env_height = env_width
-    wall_length = 800
+    wall_length = 400
     wall_thickness = 6
     wall_color = (204, 0, 102)
 
     # robot
     x = env_width / 2
     y = env_height / 2
-    v = 20
+    v = 0.1  #TODO: fine-tuning
     radius = env_width / 25
     num_sensors = 12
     max_sensor_reach = 2 * radius
@@ -93,6 +92,15 @@ if __name__ == '__main__':
     screen = pygame.display.set_mode([env_width, env_height])
     clock = pygame.time.Clock()
 
+    # initialize display velocity
+    myfont = pygame.font.SysFont('Arial', 14)
+    screen.fill((255, 255, 255))
+
+    # initialize timer in order to provide constant timer-events
+    timer_event = pygame.USEREVENT + 1
+    time = 2500  #TODO: fine-tuning
+    pygame.time.set_timer(timer_event, time)
+
     # run animation
     go = True
     while go:
@@ -103,27 +111,56 @@ if __name__ == '__main__':
                 sys.exit()
 
             pressed_keys = pygame.key.get_pressed()
-            if pressed_keys[pygame.K_UP]:
-                robot.y -= v
-                robot.update_sensors()
-            if pressed_keys[pygame.K_DOWN]:
-                robot.y += v
-                robot.update_sensors()
-            if pressed_keys[pygame.K_LEFT]:
-                robot.x -= v
-                robot.update_sensors()
-            if pressed_keys[pygame.K_RIGHT]:
-                robot.x += v
-                robot.update_sensors()
 
+            # simple robot movement
+            # if pressed_keys[pygame.K_UP]:
+            #     robot.y -= v
+            # if pressed_keys[pygame.K_DOWN]:
+            #     robot.y += v
+            # if pressed_keys[pygame.K_LEFT]:
+            #     robot.x -= v
+            # if pressed_keys[pygame.K_RIGHT]:
+            #     robot.x += v
 
-            if robot.robot_is_crossing_wall(walls):
-                print("Robot bumped into wall")
+            # change velocity one wheel
+            if pressed_keys[pygame.K_w]:
+                 robot.v_wheel_l +=v
+            if pressed_keys[pygame.K_s]:
+                robot.v_wheel_l -=v
+            if pressed_keys[pygame.K_o]:
+                robot.v_wheel_r +=v
+            if pressed_keys[pygame.K_l]:
+                robot.v_wheel_r -=v
 
-            # clear screen
-            screen.fill((255,255,255))
+            # change velocity both wheels
+            if pressed_keys[pygame.K_x]:
+                robot.v_wheel_l = 0
+                robot.v_wheel_r = 0
+            if pressed_keys[pygame.K_t]:
+                robot.v_wheel_l += v
+                robot.v_wheel_r += v
+            if pressed_keys[pygame.K_g]:
+                robot.v_wheel_l -= v
+                robot.v_wheel_r -= v
 
-            draw_walls(screen, walls, wall_thickness, wall_color)
-            draw_robot(screen, robot, robot_color, draw_sensors=True)
-            pygame.display.update()
-            clock.tick(60)
+            # update screen by providing timer-event
+            elif event.type == timer_event:
+                robot.set_new_position(1)
+                robot.update_sensors()
+                if robot.robot_is_crossing_wall(walls):
+                    print("Robot bumped into wall")
+
+                # clear screen
+                screen.fill((255, 255, 255))
+
+                # print velocities
+                text = 'v_left: ' + str('%.3f'%(robot.v_wheel_l)) + '   v_right: ' + str('%.3f'%(robot.v_wheel_r))
+                textsurface = myfont.render(text, False, (0, 0, 0))
+                screen.blit(textsurface, (env_width / 3, wall_length + (env_height - wall_length)/1.5))
+
+                # draw scene
+                draw_walls(screen, walls, wall_thickness, wall_color)
+                draw_robot(screen, robot, robot_color, draw_sensors=True) # gestrichelt? TODO
+
+                pygame.display.update()
+                # clock.tick(120)
