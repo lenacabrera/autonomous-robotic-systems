@@ -69,16 +69,16 @@ def init_walls_coordinates(env_width, env_height, wall_length):
 if __name__ == '__main__':
 
     # environment
-    env_width = 1000
+    env_width = 750#1000
     env_height = env_width
-    wall_length = 800
+    wall_length = 600#800
     wall_thickness = 6
     wall_color = (204, 0, 102)
 
     # robot
     x = env_width / 2
     y = env_height / 2
-    v = 10  #TODO: fine-tuning
+    v = 0.1  #TODO: fine-tuning
     radius = env_width / 25
     num_sensors = 12
     max_sensor_reach = 2 * radius
@@ -146,9 +146,10 @@ if __name__ == '__main__':
             # update screen by providing timer-event
             elif event.type == timer_event:
                 robot.set_new_position(1)
+                # if robot.robot_is_crossing_wall(walls):
+                #     print("Robot bumped into wall")
+                robot.robot_is_crossing_wall(walls)
                 robot.update_sensors()
-                if robot.robot_is_crossing_wall(walls):
-                    print("Robot bumped into wall")
                 sensor_distances = robot.get_sensor_distance_values(walls)
 
                 # clear screen

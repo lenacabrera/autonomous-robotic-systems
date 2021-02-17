@@ -10,7 +10,10 @@ class Robot:
         self.x = x
         self.y = y
         self.radius = radius
-        self.orientation = (x + radius, y)  # initialization: line to the right
+        self.orientation = [x + radius, y]  # initialization: line to the right
+
+        self.x_prev = x
+        self.y_prev = y
 
         self.v_wheel_l = 0
         self.v_wheel_r = 0
@@ -39,18 +42,56 @@ class Robot:
 
     def robot_is_crossing_wall(self, walls):
 
-        for wall_name, wall_coord in walls.items():
-            position = Point(self.x, self.y)
-            circle = position.buffer(self.radius).boundary
-            line = LineString([wall_coord[0], wall_coord[1]])
-            intersection = circle.intersection(line)
+        # for wall_name, wall_coord in walls.items():
+        #     position = Point(self.x, self.y)
+        #     circle = position.buffer(self.radius).boundary
+        #     line = LineString([wall_coord[0], wall_coord[1]])
+        #     intersection = circle.intersection(line)
+        #
+        #     if not intersection.is_empty:
+        #         return True
+        #
+        # # TODO check for all walls whether robot is outside of wall frame
+        #
+        # return False
 
-            if not intersection.is_empty:
-                return True
+        # # TODO: check direction-line again (orientation????)
+        # # for the right wall:
+        line_right = LineString([(self.x_prev + self.radius, self.y_prev), (self.x + self.radius, self.y)])
+        wall_right = LineString([walls["right"][0], walls["right"][1]])
+        intersection = wall_right.intersection(line_right)
+        if not intersection.is_empty:
+            # for left wall and right wall:
+            # (y-coordinate of point outside of wall, x-coordinate of wall - radius)
+            self.x = walls["right"][0][0] - self.radius - 1
+            self.orientation = (self.orientation[0] - self.radius - 1, self.orientation[1])
 
-        # TODO check for all walls whether robot is outside of wall frame
+        line_left = LineString([(self.x_prev - self.radius, self.y_prev), (self.x - self.radius, self.y)])
+        wall_left = LineString([walls["left"][0], walls["left"][1]])
+        intersection = wall_left.intersection(line_left)
+        if not intersection.is_empty:
+            # for left wall and right wall:
+            # (y-coordinate of point outside of wall, x-coordinate of wall + radius)
+            self.x = walls["left"][0][0] + self.radius + 1
+            self.orientation = (self.orientation[0] + self.radius + 1, self.orientation[1])
 
-        return False
+        line_top = LineString([(self.x_prev, self.y_prev + self.radius), (self.x, self.y + self.radius)])
+        wall_top = LineString([walls["top"][0], walls["top"][1]])
+        intersection = wall_top.intersection(line_top)
+        if not intersection.is_empty:
+            # for up wall and down wall:
+            # (x-coordinate of point outside of wall, y-coordinate of wall + radius)
+            self.y = walls["top"][0][1] - self.radius - 1
+            self.orientation = (self.orientation[0], self.orientation[1] - self.radius - 1)
+
+        line_bottom = LineString([(self.x_prev, self.y_prev - self.radius), (self.x, self.y - self.radius)])
+        wall_bottom = LineString([walls["bottom"][0], walls["bottom"][1]])
+        intersection = wall_bottom.intersection(line_bottom)
+        if not intersection.is_empty:
+            # for up wall and down wall:
+            # (x-coordinate of point outside of wall, y-coordinate of wall - radius)
+            self.y = walls["bottom"][0][1] + self.radius + 1
+            self.orientation = (self.orientation[0], self.orientation[1] + self.radius + 1)
 
 
     def get_sensor_distance_values(self, walls):
@@ -81,6 +122,11 @@ class Robot:
 
 
     def set_new_position(self, delta_t):
+
+        # for collision detection: save previous position
+        self.x_prev = self.x
+        self.y_prev = self.y
+
         # # calculate angular velocity: omega
         omega = (self.v_wheel_l - self.v_wheel_r) / 2
 
