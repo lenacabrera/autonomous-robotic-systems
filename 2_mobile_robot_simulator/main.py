@@ -34,7 +34,7 @@ def draw_robot(screen, robot, robot_color, draw_sensors=False):
     # sensors
     if draw_sensors:
         for (x_sensor, y_sensor) in robot.sensor_list:
-            pygame.draw.line(surface=screen, color=(0, 0, 0), width=2,
+            pygame.draw.line(surface=screen, color=(50, 40, 30), width=1,
                              start_pos=(robot.x, robot.y), end_pos=(x_sensor, y_sensor))
 
 
@@ -69,16 +69,16 @@ def init_walls_coordinates(env_width, env_height, wall_length):
 if __name__ == '__main__':
 
     # environment
-    env_width = 500
+    env_width = 1000
     env_height = env_width
-    wall_length = 400
+    wall_length = 800
     wall_thickness = 6
     wall_color = (204, 0, 102)
 
     # robot
     x = env_width / 2
     y = env_height / 2
-    v = 0.1  #TODO: fine-tuning
+    v = 10  #TODO: fine-tuning
     radius = env_width / 25
     num_sensors = 12
     max_sensor_reach = 2 * radius
@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     # initialize timer in order to provide constant timer-events
     timer_event = pygame.USEREVENT + 1
-    time = 2500  #TODO: fine-tuning
+    time = 250  #TODO: fine-tuning
     pygame.time.set_timer(timer_event, time)
 
     # run animation
@@ -112,15 +112,15 @@ if __name__ == '__main__':
 
             pressed_keys = pygame.key.get_pressed()
 
-            # simple robot movement
-            # if pressed_keys[pygame.K_UP]:
-            #     robot.y -= v
-            # if pressed_keys[pygame.K_DOWN]:
-            #     robot.y += v
-            # if pressed_keys[pygame.K_LEFT]:
-            #     robot.x -= v
-            # if pressed_keys[pygame.K_RIGHT]:
-            #     robot.x += v
+            #simple robot movement
+            if pressed_keys[pygame.K_UP]:
+                robot.y -= v
+            if pressed_keys[pygame.K_DOWN]:
+                robot.y += v
+            if pressed_keys[pygame.K_LEFT]:
+                robot.x -= v
+            if pressed_keys[pygame.K_RIGHT]:
+                robot.x += v
 
             # change velocity one wheel
             if pressed_keys[pygame.K_w]:
@@ -149,6 +149,7 @@ if __name__ == '__main__':
                 robot.update_sensors()
                 if robot.robot_is_crossing_wall(walls):
                     print("Robot bumped into wall")
+                sensor_distances = robot.get_sensor_distance_values(walls)
 
                 # clear screen
                 screen.fill((255, 255, 255))
@@ -157,6 +158,9 @@ if __name__ == '__main__':
                 text = 'v_left: ' + str('%.3f'%(robot.v_wheel_l)) + '   v_right: ' + str('%.3f'%(robot.v_wheel_r))
                 textsurface = myfont.render(text, False, (0, 0, 0))
                 screen.blit(textsurface, (env_width / 3, wall_length + (env_height - wall_length)/1.5))
+
+                # print distances
+
 
                 # draw scene
                 draw_walls(screen, walls, wall_thickness, wall_color)

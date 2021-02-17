@@ -44,7 +44,6 @@ class Robot:
             circle = position.buffer(self.radius).boundary
             line = LineString([wall_coord[0], wall_coord[1]])
             intersection = circle.intersection(line)
-            # print(intersection)
 
             if not intersection.is_empty:
                 return True
@@ -52,6 +51,33 @@ class Robot:
         # TODO check for all walls whether robot is outside of wall frame
 
         return False
+
+
+    def get_sensor_distance_values(self, walls):
+
+        distance_values = []
+        for i_sensor, (x_sensor, y_sensor) in enumerate(self.sensor_list):
+            sensor_distances = []
+            for wall_name, wall_coord in walls.items():
+                line_wall = LineString([wall_coord[0], wall_coord[1]])
+                line_sensor = LineString([(self.x, self.y), (x_sensor, y_sensor)])
+                intersection = line_wall.intersection(line_sensor)
+                if intersection.is_empty:
+                    # wenn kein intersection -> max. reach
+                    sensor_distances.append(self.max_sensor_reach)
+                else:
+                    # wenn intersection
+                    # 1. a = laenge/differenz von x vom mittelpunkt zu x vom schnittpunkt
+                    # 2. b = laenge/differenz von y vom mittelpunkt zu y vom schnittpunkt
+                    # 3. satz des pythaghoras a^2 + b^2 = c^2 <- Wurzel(c)-radius
+                    a = abs(self.x - intersection.x)
+                    b = abs(self.y - intersection.y)
+                    c = math.sqrt(math.pow(a, 2) + math.pow(b, 2)) - self.radius
+                    sensor_distances.append(c)
+
+                distance_values.append(min(sensor_distances))
+
+        return distance_values
 
 
     def set_new_position(self, delta_t):
