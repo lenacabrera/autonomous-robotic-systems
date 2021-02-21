@@ -28,7 +28,7 @@ class Robot:
     def init_sensors(self):
         self.update_sensors()
 
-    def update_sensors(self, ):
+    def update_sensors(self):
         # update coordinates of sensors after robot has moved
         sensors = []
         for sensor_id in range(self.num_sensors):
@@ -56,64 +56,131 @@ class Robot:
         #
         # return False
 
-        # # TODO: check direction-line again (orientation????)
-        # # for the right wall:
-        line_right = LineString([(self.x_prev + self.radius, self.y_prev), (self.x + self.radius, self.y)])
+        # for left wall and right wall:
+        # (y-coordinate of point outside of wall, x-coordinate of wall +/- radius)
+
+        # for top wall and bottom wall:
+        # (x-coordinate of point outside of wall, y-coordinate of wall -/+ radius)
+
+
+        # wall line objects
         wall_right = LineString([walls["right"][0], walls["right"][1]])
-        intersection_right = wall_right.intersection(line_right)
+        wall_left = LineString([walls["left"][0], walls["left"][1]])
+        wall_top = LineString([walls["top"][0], walls["top"][1]])
+        wall_bottom = LineString([walls["bottom"][0], walls["bottom"][1]])
 
         x = self.x
         y = self.y
 
+        ### check crossing of wall
+        # 1. RIGHT ##############################################################################################
+        line_right = LineString([(self.x_prev + self.radius, self.y_prev), (self.x + self.radius, self.y)])
+        intersection_right = wall_right.intersection(line_right)
         if not intersection_right.is_empty:
-            # for left wall and right wall:
-            # (y-coordinate of point outside of wall, x-coordinate of wall - radius)
             x = walls["right"][0][0] - self.radius - 1
-            # self.orientation = (self.orientation[0] - self.radius - 1, self.orientation[1])
-            # self.orientation = (self.x + np.cos(self.line_angle) * self.radius,
-            #                     self.y + np.sin(self.line_angle) * self.radius)
-            # print(self.x)
-            # print(self.orientation)
-            # print("right")
+            # self.orientation = (self.orientation[0] + self.radius + 1, self.orientation[1])
 
+        # 2. LEFT ##############################################################################################
         line_left = LineString([(self.x_prev - self.radius, self.y_prev), (self.x - self.radius, self.y)])
-        wall_left = LineString([walls["left"][0], walls["left"][1]])
         intersection_left = wall_left.intersection(line_left)
         if not intersection_left.is_empty:
-            # for left wall and right wall:
-            # (y-coordinate of point outside of wall, x-coordinate of wall + radius)
             x = walls["left"][0][0] + self.radius + 1
-            #self.orientation = (self.orientation[0] + self.radius + 1, self.orientation[1])
-            # self.orientation = (self.x + np.cos(self.line_angle) * self.radius,
-            #                     self.y + np.sin(self.line_angle) * self.radius)
+            # self.orientation = (self.orientation[0] - self.radius - 1, self.orientation[1])
 
-        line_top = LineString([(self.x_prev, self.y_prev + self.radius), (self.x, self.y + self.radius)])
-        wall_top = LineString([walls["top"][0], walls["top"][1]])
+        # 3. TOP ##############################################################################################
+        line_top = LineString([(self.x_prev, self.y_prev - self.radius), (self.x, self.y - self.radius)])
         intersection_top = wall_top.intersection(line_top)
         if not intersection_top.is_empty:
-            # for up wall and down wall:
-            # (x-coordinate of point outside of wall, y-coordinate of wall + radius)
-            y = walls["top"][0][1] - self.radius - 1
-            #self.orientation = (self.orientation[0], self.orientation[1] - self.radius - 1)
-            # self.orientation = (self.x + np.cos(self.line_angle) * self.radius,
-            #                     self.y + np.sin(self.line_angle) * self.radius)
+            y = walls["top"][0][1] + self.radius + 1
+            # self.orientation = (self.orientation[0], self.orientation[1] + self.radius + 1)
 
-        line_bottom = LineString([(self.x_prev, self.y_prev - self.radius), (self.x, self.y - self.radius)])
-        wall_bottom = LineString([walls["bottom"][0], walls["bottom"][1]])
+        # 4. BOTTOM ##############################################################################################
+        line_bottom = LineString([(self.x_prev, self.y_prev + self.radius), (self.x, self.y + self.radius)])
         intersection_bottom = wall_bottom.intersection(line_bottom)
         if not intersection_bottom.is_empty:
-            # for up wall and down wall:
-            # (x-coordinate of point outside of wall, y-coordinate of wall - radius)
-            y = walls["bottom"][0][1] + self.radius + 1
-            #self.orientation = (self.orientation[0], self.orientation[1] + self.radius + 1)
-            # self.orientation = (self.x + np.cos(self.line_angle) * self.radius,
-            #                     self.y + np.sin(self.line_angle) * self.radius)
+            y = walls["bottom"][0][1] - self.radius - 1
+            # self.orientation = (self.orientation[0], self.orientation[1] - self.radius - 1)
 
         self.x = x
         self.y = y
 
-        self.orientation = (self.x + np.cos(self.line_angle) * self.radius,
-                            self.y + np.sin(self.line_angle) * self.radius)
+        if intersection_left.is_empty and intersection_right.is_empty and intersection_top.is_empty and intersection_bottom.is_empty:
+            return
+        #     print(self.orientation)
+        #     print(self.x, self.y)
+
+
+        # wall intersects with out-of-frame orientation?
+        line_oof_orientation = LineString([(self.x_prev, self.y_prev), (self.orientation[0], self.orientation[1])])
+        circle = Point(self.x_prev, self.y_prev).buffer(self.radius).boundary
+        # 1. RIGHT
+        intersection_wall_orientation = wall_right.intersection(line_oof_orientation)
+        # intersection_wall_orientation = wall_right.intersection(LineString([(self.x_prev, self.y_prev), (walls["right"][0][0], self.orientation[1])]))
+        if not intersection_wall_orientation.is_empty:
+            # new_orientation = circle.intersection(LineString([(self.x_prev, self.y_prev), (intersection_wall_orientation.x, intersection_wall_orientation.y)]))
+            # self.orientation = (new_orientation.x, new_orientation.y)
+
+            v1 = np.array([1,0])
+            v2 = np.array([intersection_wall_orientation.x - self.x_prev, intersection_wall_orientation.y - self.y_prev])
+            v1_norm = v1 / np.linalg.norm(v1)
+            v2_norm = v2 / np.linalg.norm(v2)
+
+            dot = v1_norm[0] * v2_norm[0] + v1_norm[1] * v2_norm[1]
+            det = v1_norm[0] * v2_norm[1] - v2_norm[0] * v1_norm[1]
+
+            angle = np.arctan2(det, dot)
+            # angle = np.arccos(dot)
+
+            if angle > 0:
+                a = angle * 360 / (2*math.pi)
+            else:
+                a = (2*math.pi + angle) * 360 / (2*math.pi)
+
+            print(a)
+
+            radians = math.atan2(intersection_wall_orientation.y - self.y_prev, intersection_wall_orientation.x - self.x_prev)
+            # degrees = math.degrees(radians)
+            self.orientation = (self.x + (self.radius * math.cos(angle)), self.y + (self.radius * math.sin(angle)))
+        else:
+            # 2. LEFT
+            intersection_wall_orientation = wall_left.intersection(line_oof_orientation)
+            # intersection_wall_orientation = wall_left.intersection(LineString([(self.x_prev, self.y_prev), (walls["left"][0][0], self.orientation[1])]))
+            if not intersection_wall_orientation.is_empty:
+                # new_orientation = circle.intersection(LineString([(self.x_prev, self.y_prev), (intersection_wall_orientation.x, intersection_wall_orientation.y)]))
+                # self.orientation = (new_orientation.x, new_orientation.y)
+
+                radians = math.atan2(intersection_wall_orientation.y - self.y_prev, intersection_wall_orientation.x - self.x_prev)
+                # degrees = math.degrees(radians)
+                self.orientation = (self.x + (self.radius * math.cos(radians)), self.y + (self.radius * math.sin(radians)))
+            else:
+                # 3. TOP
+                intersection_wall_orientation = wall_top.intersection(line_oof_orientation)
+                # intersection_wall_orientation = wall_top.intersection(LineString([(self.x_prev, self.y_prev), (self.orientation[0], walls["top"][0][1])]))
+                if not intersection_wall_orientation.is_empty:
+                    # new_orientation = circle.intersection(LineString([(self.x_prev, self.y_prev), (intersection_wall_orientation.x, intersection_wall_orientation.y)]))
+                    # self.orientation = (new_orientation.x, new_orientation.y)
+
+                    radians = math.atan2(intersection_wall_orientation.y - self.y_prev, intersection_wall_orientation.x - self.x_prev)
+                    # degrees = math.degrees(radians)
+                    self.orientation = (self.x + (self.radius * math.cos(radians)), self.y + (self.radius * math.sin(radians)))
+                else:
+                    # 4. BOTTOM
+                    intersection_wall_orientation = wall_bottom.intersection(line_oof_orientation)
+                    # intersection_wall_orientation = wall_bottom.intersection(LineString([(self.x_prev, self.y_prev), (self.orientation[0], walls["bottom"][0][1])]))
+                    if not intersection_wall_orientation.is_empty:
+                        # new_orientation = circle.intersection(LineString([(self.x_prev, self.y_prev), (intersection_wall_orientation.x, intersection_wall_orientation.y)]))
+                        # self.orientation = (new_orientation.x, new_orientation.y)
+                        # self.orientation = (new_orientation.x, new_orientation.y + 1)
+
+                        radians = math.atan2(intersection_wall_orientation.y - self.y_prev, intersection_wall_orientation.x - self.x_prev)
+                        # degrees = math.degrees(radians)
+                        self.orientation = (self.x + (self.radius * math.cos(radians)), self.y + (self.radius * math.sin(radians)))
+
+        #
+        # if not (intersection_left.is_empty and intersection_right.is_empty and intersection_top.is_empty and intersection_bottom.is_empty):
+        # #     print(self.orientation)
+        #     print(self.x, self.y)
+
 
 
     def get_sensor_distance_values(self, walls):
@@ -156,7 +223,7 @@ class Robot:
         if self.v_wheel_l != self.v_wheel_r:
             R = self.radius * (self.v_wheel_l + self.v_wheel_r) / (self.v_wheel_l - self.v_wheel_r)
         else:
-            R = 1
+            R = 100
 
         # # calculate angle of robot relative to x-axis (horizontal axis): Theta
         # vector_1 pointing in the direction of the x axis, vector_2 in the direction of the robot
