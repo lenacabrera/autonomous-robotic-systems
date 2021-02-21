@@ -11,6 +11,7 @@ class Robot:
         self.y = y
         self.radius = radius
         self.orientation = [x + radius, y]  # initialization: line to the right
+        self.line_angle = 0
 
         self.x_prev = x
         self.y_prev = y
@@ -27,7 +28,7 @@ class Robot:
     def init_sensors(self):
         self.update_sensors()
 
-    def update_sensors(self):
+    def update_sensors(self, ):
         # update coordinates of sensors after robot has moved
         sensors = []
         for sensor_id in range(self.num_sensors):
@@ -59,39 +60,60 @@ class Robot:
         # # for the right wall:
         line_right = LineString([(self.x_prev + self.radius, self.y_prev), (self.x + self.radius, self.y)])
         wall_right = LineString([walls["right"][0], walls["right"][1]])
-        intersection = wall_right.intersection(line_right)
-        if not intersection.is_empty:
+        intersection_right = wall_right.intersection(line_right)
+
+        x = self.x
+        y = self.y
+
+        if not intersection_right.is_empty:
             # for left wall and right wall:
             # (y-coordinate of point outside of wall, x-coordinate of wall - radius)
-            self.x = walls["right"][0][0] - self.radius - 1
-            self.orientation = (self.orientation[0] - self.radius - 1, self.orientation[1])
+            x = walls["right"][0][0] - self.radius - 1
+            # self.orientation = (self.orientation[0] - self.radius - 1, self.orientation[1])
+            # self.orientation = (self.x + np.cos(self.line_angle) * self.radius,
+            #                     self.y + np.sin(self.line_angle) * self.radius)
+            # print(self.x)
+            # print(self.orientation)
+            # print("right")
 
         line_left = LineString([(self.x_prev - self.radius, self.y_prev), (self.x - self.radius, self.y)])
         wall_left = LineString([walls["left"][0], walls["left"][1]])
-        intersection = wall_left.intersection(line_left)
-        if not intersection.is_empty:
+        intersection_left = wall_left.intersection(line_left)
+        if not intersection_left.is_empty:
             # for left wall and right wall:
             # (y-coordinate of point outside of wall, x-coordinate of wall + radius)
-            self.x = walls["left"][0][0] + self.radius + 1
-            self.orientation = (self.orientation[0] + self.radius + 1, self.orientation[1])
+            x = walls["left"][0][0] + self.radius + 1
+            #self.orientation = (self.orientation[0] + self.radius + 1, self.orientation[1])
+            # self.orientation = (self.x + np.cos(self.line_angle) * self.radius,
+            #                     self.y + np.sin(self.line_angle) * self.radius)
 
         line_top = LineString([(self.x_prev, self.y_prev + self.radius), (self.x, self.y + self.radius)])
         wall_top = LineString([walls["top"][0], walls["top"][1]])
-        intersection = wall_top.intersection(line_top)
-        if not intersection.is_empty:
+        intersection_top = wall_top.intersection(line_top)
+        if not intersection_top.is_empty:
             # for up wall and down wall:
             # (x-coordinate of point outside of wall, y-coordinate of wall + radius)
-            self.y = walls["top"][0][1] - self.radius - 1
-            self.orientation = (self.orientation[0], self.orientation[1] - self.radius - 1)
+            y = walls["top"][0][1] - self.radius - 1
+            #self.orientation = (self.orientation[0], self.orientation[1] - self.radius - 1)
+            # self.orientation = (self.x + np.cos(self.line_angle) * self.radius,
+            #                     self.y + np.sin(self.line_angle) * self.radius)
 
         line_bottom = LineString([(self.x_prev, self.y_prev - self.radius), (self.x, self.y - self.radius)])
         wall_bottom = LineString([walls["bottom"][0], walls["bottom"][1]])
-        intersection = wall_bottom.intersection(line_bottom)
-        if not intersection.is_empty:
+        intersection_bottom = wall_bottom.intersection(line_bottom)
+        if not intersection_bottom.is_empty:
             # for up wall and down wall:
             # (x-coordinate of point outside of wall, y-coordinate of wall - radius)
-            self.y = walls["bottom"][0][1] + self.radius + 1
-            self.orientation = (self.orientation[0], self.orientation[1] + self.radius + 1)
+            y = walls["bottom"][0][1] + self.radius + 1
+            #self.orientation = (self.orientation[0], self.orientation[1] + self.radius + 1)
+            # self.orientation = (self.x + np.cos(self.line_angle) * self.radius,
+            #                     self.y + np.sin(self.line_angle) * self.radius)
+
+        self.x = x
+        self.y = y
+
+        self.orientation = (self.x + np.cos(self.line_angle) * self.radius,
+                            self.y + np.sin(self.line_angle) * self.radius)
 
 
     def get_sensor_distance_values(self, walls):
@@ -116,7 +138,7 @@ class Robot:
                     c = math.sqrt(math.pow(a, 2) + math.pow(b, 2)) - self.radius
                     sensor_distances.append(c)
 
-                distance_values.append(min(sensor_distances))
+            distance_values.append(min(sensor_distances))
 
         return distance_values
 
@@ -134,7 +156,7 @@ class Robot:
         if self.v_wheel_l != self.v_wheel_r:
             R = self.radius * (self.v_wheel_l + self.v_wheel_r) / (self.v_wheel_l - self.v_wheel_r)
         else:
-            R = 100
+            R = 1
 
         # # calculate angle of robot relative to x-axis (horizontal axis): Theta
         # vector_1 pointing in the direction of the x axis, vector_2 in the direction of the robot
@@ -170,7 +192,14 @@ class Robot:
                        [omega * delta_t]
                        ])
         # the multiplication and addition: The output is [x' y' Theta']
-        new = np.matmul(m1, m2) + m3
+        if(self.v_wheel_l != self.v_wheel_r):
+            new = np.matmul(m1, m2) + m3
+
+        else:
+            new = np.array([[self.x + self.v_wheel_l * np.cos(Theta)],
+                            [self.y + self.v_wheel_l * np.sin(Theta)],
+                            [Theta]
+                            ])
 
         # # updating the x and the y coordinate of the robot
         self.x = new[0][0]
@@ -179,4 +208,6 @@ class Robot:
         # # updating the orientation: the point on the border of the circle
         self.orientation = (self.x + np.cos(new[2][0]) * self.radius,
                             self.y + np.sin(new[2][0]) * self.radius)
+
+        self.line_angle = new[2][0]
 

@@ -1,6 +1,7 @@
 import pygame
 import sys
 from robot import Robot
+import math
 
 
 def draw_walls(screen, walls, wall_thickness, wall_color):
@@ -25,7 +26,7 @@ def draw_walls(screen, walls, wall_thickness, wall_color):
                      end_pos=walls['bottom'][1])
 
 
-def draw_robot(screen, robot, robot_color, draw_sensors=False):
+def draw_robot(screen, robot, robot_color, distance_values, draw_sensors=False):
     # body of robot
     pygame.draw.circle(surface=screen, color=robot_color, center=(robot.x, robot.y), radius=robot.radius)
     # orientation of robot
@@ -33,9 +34,24 @@ def draw_robot(screen, robot, robot_color, draw_sensors=False):
                      start_pos=(robot.x, robot.y), end_pos=robot.orientation)
     # sensors
     if draw_sensors:
-        for (x_sensor, y_sensor) in robot.sensor_list:
-            pygame.draw.line(surface=screen, color=(50, 40, 30), width=1,
-                             start_pos=(robot.x, robot.y), end_pos=(x_sensor, y_sensor))
+        for i_sensor, (x_sensor, y_sensor) in enumerate(robot.sensor_list):
+            angle = (i_sensor + 1) * 360 / robot.num_sensors
+            sensor_start_x = robot.x + math.cos(angle * math.pi / 180) * robot.radius
+            sensor_start_y = robot.y + math.sin(angle * math.pi / 180) * robot.radius
+
+            sensor_length = robot.radius + distance_values[i_sensor]
+
+            sensor_end_x = robot.x + math.cos(angle * math.pi / 180) * sensor_length
+            sensor_end_y = robot.y + math.sin(angle * math.pi / 180) * sensor_length
+
+            pygame.draw.line(surface=screen, color=(255, 0, 0), width=1,
+                             start_pos=(sensor_start_x, sensor_start_y), end_pos=(sensor_end_x, sensor_end_y))
+
+            text = str(int(distance_values[i_sensor]))  # + " " + str(i_sensor)
+            textsurface = myfont.render(text, False, (0, 0, 0))
+            screen.blit(textsurface, (sensor_end_x - 7 + math.cos(angle * math.pi / 180) * robot.radius / 4,
+                                      sensor_end_y - 7 + math.sin(angle * math.pi / 180) * robot.radius / 4))
+
 
 
 def init_walls_coordinates(env_width, env_height, wall_length):
@@ -78,8 +94,8 @@ if __name__ == '__main__':
     # robot
     x = env_width / 2
     y = env_height / 2
-    v = 0.1  #TODO: fine-tuning
-    radius = env_width / 25
+    v = 1  #TODO: fine-tuning
+    radius = env_width / 15
     num_sensors = 12
     max_sensor_reach = 2 * radius
     robot_color = (153,204,255)
@@ -112,7 +128,7 @@ if __name__ == '__main__':
 
             pressed_keys = pygame.key.get_pressed()
 
-            #simple robot movement
+            # simple robot movement
             if pressed_keys[pygame.K_UP]:
                 robot.y -= v
             if pressed_keys[pygame.K_DOWN]:
@@ -145,12 +161,12 @@ if __name__ == '__main__':
 
             # update screen by providing timer-event
             elif event.type == timer_event:
-                robot.set_new_position(1)
+                robot.set_new_position(0.1)
                 # if robot.robot_is_crossing_wall(walls):
                 #     print("Robot bumped into wall")
                 robot.robot_is_crossing_wall(walls)
                 robot.update_sensors()
-                sensor_distances = robot.get_sensor_distance_values(walls)
+                sensor_d = robot.get_sensor_distance_values(walls)
 
                 # clear screen
                 screen.fill((255, 255, 255))
@@ -165,7 +181,7 @@ if __name__ == '__main__':
 
                 # draw scene
                 draw_walls(screen, walls, wall_thickness, wall_color)
-                draw_robot(screen, robot, robot_color, draw_sensors=True) # gestrichelt? TODO
+                draw_robot(screen, robot, robot_color, sensor_d, draw_sensors=True) # gestrichelt? TODO
 
                 pygame.display.update()
                 # clock.tick(120)
