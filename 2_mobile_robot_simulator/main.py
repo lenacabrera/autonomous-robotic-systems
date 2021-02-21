@@ -38,24 +38,37 @@ def draw_robot(screen, robot, robot_color, draw_sensors=False):
                              start_pos=(robot.x, robot.y), end_pos=(x_sensor, y_sensor))
 
 
-def init_walls_coordinates(env_width, env_height, wall_length):
+def init_walls_coordinates(env_width, env_height, wall_length, num_walls=4):
 
     # wall frame distance
     dist_l_r = (env_width - wall_length) / 2  # distance to frame, left and right
     dist_t_b = (env_height - wall_length) / 2  # distance to frame, top and bottom
 
+    # if num_walls == 4:
+
+    # left_start = (dist_l_r, dist_t_b)
+    # left_end = (dist_l_r, dist_t_b + wall_length)
+    #
+    # top_start = (dist_l_r, dist_t_b + wall_length)
+    # top_end = (dist_l_r + wall_length, dist_t_b + wall_length)
+    #
+    # right_start = (dist_l_r + wall_length, dist_t_b + wall_length)
+    # right_end = (dist_l_r + wall_length, dist_t_b)
+    #
+    # bottom_start = (dist_l_r, dist_t_b)
+    # bottom_end = (dist_l_r + wall_length, dist_t_b)
 
     left_start = (dist_l_r, dist_t_b)
     left_end = (dist_l_r, dist_t_b + wall_length)
 
-    top_start = (dist_l_r, dist_t_b + wall_length)
-    top_end = (dist_l_r + wall_length, dist_t_b + wall_length)
+    top_start = (dist_l_r, dist_t_b)
+    top_end = (dist_l_r + wall_length, dist_t_b)
 
-    right_start = (dist_l_r + wall_length, dist_t_b + wall_length)
-    right_end = (dist_l_r + wall_length, dist_t_b)
+    right_start = (dist_l_r + wall_length, dist_t_b)
+    right_end = (dist_l_r + wall_length, dist_t_b + wall_length)
 
-    bottom_start = (dist_l_r, dist_t_b)
-    bottom_end = (dist_l_r + wall_length, dist_t_b)
+    bottom_start = (dist_l_r, dist_t_b + wall_length)
+    bottom_end = (dist_l_r + wall_length, dist_t_b + wall_length)
 
     walls = {
         'left': [left_start, left_end],
@@ -64,22 +77,70 @@ def init_walls_coordinates(env_width, env_height, wall_length):
         'bottom': [bottom_start, bottom_end],
     }
 
+    # else:
+    #
+    #     wall_lengths = {
+    #         'left': [0.7, 0.3, 0.4],
+    #         'top': [0.25, 0.55, 0.2],
+    #         'right': [0.15, 0.85, 0.4],
+    #         'bottom': [0.5, 0.15, 0.35],
+    #     }
+    #
+    #     print(list(wall_lengths.values()))
+
+        # walls = dict(wall_lengths.keys())
+        #
+        # for side, lengths in wall_length.items():
+        #     for length in lengths:
+        #         start = (dist_l_r, dist_t_b)
+        #         walls[side].append
+        #
+        # walls = {
+        #     'left': [
+        #         [(dist_l_r, dist_t_b), (dist_l_r, dist_t_b + )],
+        #         [(,), (,)],
+        #         [(,), (,)]
+        #     ],
+        #     'top': [
+        #         [(,), (,)],
+        #         [(,), (,)],
+        #         [(,), (,)]
+        #     ],
+        #     'right': [
+        #         [(,), (,)],
+        #         [(,), (,)],
+        #         [(,), (,)]
+        #     ],
+        #     'bottom': [
+        #         [(,), (,)],
+        #         [(,), (,)],
+        #         [(,), (,)]
+        #     ],
+        # }
+
+        # walls = {
+        #     0: [left_start, left_end],
+        #     1: [top_start, top_end],
+        #     2: [right_start, right_end],
+        #     3: [bottom_start, bottom_end],
+        # }
+
     return walls
 
 if __name__ == '__main__':
 
     # environment
-    env_width = 750#1000
+    env_width = 1000
     env_height = env_width
-    wall_length = 600#800
-    wall_thickness = 6
+    wall_length = 800
+    wall_thickness = 1
     wall_color = (204, 0, 102)
 
     # robot
     x = env_width / 2
     y = env_height / 2
     v = 0.1  #TODO: fine-tuning
-    radius = env_width / 25
+    radius = env_width /10 #25
     num_sensors = 12
     max_sensor_reach = 2 * radius
     robot_color = (153,204,255)
@@ -113,14 +174,14 @@ if __name__ == '__main__':
             pressed_keys = pygame.key.get_pressed()
 
             #simple robot movement
-            if pressed_keys[pygame.K_UP]:
-                robot.y -= v
-            if pressed_keys[pygame.K_DOWN]:
-                robot.y += v
-            if pressed_keys[pygame.K_LEFT]:
-                robot.x -= v
-            if pressed_keys[pygame.K_RIGHT]:
-                robot.x += v
+            # if pressed_keys[pygame.K_UP]:
+            #     robot.y -= v
+            # if pressed_keys[pygame.K_DOWN]:
+            #     robot.y += v
+            # if pressed_keys[pygame.K_LEFT]:
+            #     robot.x -= v
+            # if pressed_keys[pygame.K_RIGHT]:
+            #     robot.x += v
 
             # change velocity one wheel
             if pressed_keys[pygame.K_w]:
@@ -165,7 +226,7 @@ if __name__ == '__main__':
 
                 # draw scene
                 draw_walls(screen, walls, wall_thickness, wall_color)
-                draw_robot(screen, robot, robot_color, draw_sensors=True) # gestrichelt? TODO
+                draw_robot(screen, robot, robot_color, draw_sensors=False) # gestrichelt? TODO
 
                 pygame.display.update()
                 # clock.tick(120)
