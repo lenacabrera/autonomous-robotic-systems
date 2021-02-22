@@ -233,7 +233,10 @@ if __name__ == '__main__':
                 screen.fill((255, 255, 255))
 
                 # print velocities
-                text = 'v_left: ' + str('%.3f'%(robot.v_wheel_l)) + '   v_right: ' + str('%.3f'%(robot.v_wheel_r))
+                text = 'v_left: ' + str('%.3f'%(robot.v_wheel_l)) + \
+                       '   v_right: ' + str('%.3f'%(robot.v_wheel_r)) + \
+                       '   v: ' + str('%.3f'%((robot.v_wheel_l + robot.v_wheel_r)/2))
+
                 textsurface = myfont.render(text, False, (0, 0, 0))
                 screen.blit(textsurface, (env_width / 3, wall_length + (env_height - wall_length)/1.5))
 
