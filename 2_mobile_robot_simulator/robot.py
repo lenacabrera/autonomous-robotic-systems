@@ -1,7 +1,6 @@
 import numpy as np
 import math
 from shapely.geometry import LineString
-from shapely.geometry import Point
 
 
 class Robot:
@@ -24,7 +23,6 @@ class Robot:
         self.sensor_list = []
         self.init_sensors()
 
-
     def init_sensors(self):
         self.update_sensors()
 
@@ -40,9 +38,7 @@ class Robot:
 
         self.sensor_list = sensors
 
-
     def robot_is_crossing_wall(self, walls):
-
         # check if robot crosses the wall and if so update position
         x = self.x
         y = self.y
@@ -85,10 +81,7 @@ class Robot:
             radians = math.atan2(self.orientation[1] - self.y_prev, self.orientation[0] - self.x_prev)
             self.orientation = (self.x + (self.radius * math.cos(radians)), self.y + (self.radius * math.sin(radians)))
 
-
-
     def get_sensor_distance_values(self, walls):
-
         distance_values = []
         for i_sensor, (x_sensor, y_sensor) in enumerate(self.sensor_list):
             sensor_distances = []
@@ -97,13 +90,10 @@ class Robot:
                 line_sensor = LineString([(self.x, self.y), (x_sensor, y_sensor)])
                 intersection = line_wall.intersection(line_sensor)
                 if intersection.is_empty:
-                    # wenn kein intersection -> max. reach
+                    # if no intersection -> maximum sensor reach
                     sensor_distances.append(self.max_sensor_reach)
                 else:
-                    # wenn intersection
-                    # 1. a = laenge/differenz von x vom mittelpunkt zu x vom schnittpunkt
-                    # 2. b = laenge/differenz von y vom mittelpunkt zu y vom schnittpunkt
-                    # 3. satz des pythaghoras a^2 + b^2 = c^2 <- Wurzel(c)-radius
+                    # if intersection
                     a = abs(self.x - intersection.x)
                     b = abs(self.y - intersection.y)
                     c = math.sqrt(math.pow(a, 2) + math.pow(b, 2)) - self.radius
@@ -113,9 +103,7 @@ class Robot:
 
         return distance_values
 
-
     def set_new_position(self, delta_t):
-
         # for collision detection: save previous position
         self.x_prev = self.x
         self.y_prev = self.y
@@ -163,7 +151,7 @@ class Robot:
                        [omega * delta_t]
                        ])
         # the multiplication and addition: The output is [x' y' Theta']
-        if(self.v_wheel_l != self.v_wheel_r):
+        if (self.v_wheel_l != self.v_wheel_r):
             new = np.matmul(m1, m2) + m3
 
         else:
@@ -181,4 +169,3 @@ class Robot:
                             self.y + np.sin(new[2][0]) * self.radius)
 
         self.line_angle = new[2][0]
-
