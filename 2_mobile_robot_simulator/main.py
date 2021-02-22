@@ -2,7 +2,7 @@ import pygame
 import sys
 from robot import Robot
 import math
-
+import numpy as np
 
 def draw_walls(screen, walls, wall_thickness, wall_color):
 
@@ -47,10 +47,21 @@ def draw_robot(screen, robot, robot_color, distance_values, draw_sensors=False):
             pygame.draw.line(surface=screen, color=(255, 0, 0), width=1,
                              start_pos=(sensor_start_x, sensor_start_y), end_pos=(sensor_end_x, sensor_end_y))
 
+            # display sensor values
             text = str(int(distance_values[i_sensor]))  # + " " + str(i_sensor)
             textsurface = myfont.render(text, False, (0, 0, 0))
             screen.blit(textsurface, (sensor_end_x - 7 + math.cos(angle * math.pi / 180) * robot.radius / 4,
                                       sensor_end_y - 7 + math.sin(angle * math.pi / 180) * robot.radius / 4))
+
+    text = str(int(robot.v_wheel_r))
+    textsurface = myfont.render(text, False, (0, 0, 0))
+    screen.blit(textsurface, (robot.x + np.cos(robot.line_angle + math.pi /2) * robot.radius /2,
+                              robot.y + np.sin(robot.line_angle + math.pi /2) * robot.radius /2))
+
+    text = str(int(robot.v_wheel_l))
+    textsurface = myfont.render(text, False, (0, 0, 0))
+    screen.blit(textsurface, (robot.x + np.cos(robot.line_angle + 3 * math.pi/2) * robot.radius / 2,
+                              robot.y + np.sin(robot.line_angle + 3 * math.pi/2) * robot.radius / 2))
 
 
 
@@ -155,7 +166,8 @@ if __name__ == '__main__':
     # robot
     x = env_width / 2
     y = env_height / 2
-    v = 1  #TODO: fine-tuning
+    v = 0.5  #TODO: fine-tuning
+    v_max = 15
     radius = env_width / 15
     num_sensors = 12
     max_sensor_reach = 2 * radius
@@ -189,7 +201,7 @@ if __name__ == '__main__':
 
             pressed_keys = pygame.key.get_pressed()
 
-            #simple robot movement
+            # simple robot movement
             # if pressed_keys[pygame.K_UP]:
             #     robot.y -= v
             # if pressed_keys[pygame.K_DOWN]:
@@ -199,29 +211,55 @@ if __name__ == '__main__':
             # if pressed_keys[pygame.K_RIGHT]:
             #     robot.x += v
 
-            # change velocity one wheel
-            if pressed_keys[pygame.K_w]:
-                 robot.v_wheel_l +=v
-            if pressed_keys[pygame.K_s]:
-                robot.v_wheel_l -=v
-            if pressed_keys[pygame.K_o]:
-                robot.v_wheel_r +=v
-            if pressed_keys[pygame.K_l]:
-                robot.v_wheel_r -=v
+            if (robot.v_wheel_l + robot.v_wheel_r) / 2 < v_max:
 
-            # change velocity both wheels
-            if pressed_keys[pygame.K_x]:
-                robot.v_wheel_l = 0
-                robot.v_wheel_r = 0
-            if pressed_keys[pygame.K_t]:
-                robot.v_wheel_l += v
-                robot.v_wheel_r += v
-            if pressed_keys[pygame.K_g]:
-                robot.v_wheel_l -= v
-                robot.v_wheel_r -= v
+                if pressed_keys[pygame.K_w]:
+                    robot.v_wheel_l += v
+                if pressed_keys[pygame.K_o]:
+                    robot.v_wheel_r += v
+                if pressed_keys[pygame.K_t]:
+                    robot.v_wheel_l += v
+                    robot.v_wheel_r += v
+                if pressed_keys[pygame.K_x]:
+                    robot.v_wheel_l = 0
+                    robot.v_wheel_r = 0
+
+            if (robot.v_wheel_l + robot.v_wheel_r) / 2 > - v_max:
+                if pressed_keys[pygame.K_s]:
+                    robot.v_wheel_l -= v
+                if pressed_keys[pygame.K_l]:
+                    robot.v_wheel_r -= v
+                if pressed_keys[pygame.K_g]:
+                    robot.v_wheel_l -= v
+                    robot.v_wheel_r -= v
+                if pressed_keys[pygame.K_x]:
+                    robot.v_wheel_l = 0
+                    robot.v_wheel_r = 0
+
+
+                # # change velocity one wheel
+                # if pressed_keys[pygame.K_w]:
+                #     robot.v_wheel_l += v
+                # if pressed_keys[pygame.K_s]:
+                #     robot.v_wheel_l -= v
+                # if pressed_keys[pygame.K_o]:
+                #     robot.v_wheel_r += v
+                # if pressed_keys[pygame.K_l]:
+                #     robot.v_wheel_r -= v
+                #
+                # # change velocity both wheels
+                # if pressed_keys[pygame.K_x]:
+                #     robot.v_wheel_l = 0
+                #     robot.v_wheel_r = 0
+                # if pressed_keys[pygame.K_t]:
+                #     robot.v_wheel_l += v
+                #     robot.v_wheel_r += v
+                # if pressed_keys[pygame.K_g]:
+                #     robot.v_wheel_l -= v
+                #     robot.v_wheel_r -= v
 
             # update screen by providing timer-event
-            elif event.type == timer_event:
+            if event.type == timer_event:
                 robot.set_new_position(0.1)
                 # if robot.robot_is_crossing_wall(walls):
                 #     print("Robot bumped into wall")
@@ -232,13 +270,10 @@ if __name__ == '__main__':
                 # clear screen
                 screen.fill((255, 255, 255))
 
-                # print velocities
-                text = 'v_left: ' + str('%.3f'%(robot.v_wheel_l)) + '   v_right: ' + str('%.3f'%(robot.v_wheel_r))
-                textsurface = myfont.render(text, False, (0, 0, 0))
-                screen.blit(textsurface, (env_width / 3, wall_length + (env_height - wall_length)/1.5))
-
-                # print distances
-
+                # # print velocities
+                # text = 'v_left: ' + str(int(robot.v_wheel_l)) + '   v_right: ' + str(int(robot.v_wheel_r))
+                # textsurface = myfont.render(text, False, (0, 0, 0))
+                # screen.blit(textsurface, (env_width / 3, wall_length + (env_height - wall_length)/1.5))
 
                 # draw scene
                 draw_walls(screen, walls, wall_thickness, wall_color)
