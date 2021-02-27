@@ -1,3 +1,5 @@
+import matplotlib
+
 from particle import Particle
 from population import Population
 import numpy
@@ -6,48 +8,15 @@ import benchmark_functions
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-
+matplotlib.use("TkAgg")
 # This code was jointly programmed by Kathrin Hartmann and Lena Cabrera
 
 
-def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delta_t, frame_range, random_init_v, v_max,
-        oof_strategy):
+def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, frame_range, n_best_percentage, termination_threshold):
 
     population = Population(n_particles, frame_range, benchmark_function)
 
-
-
-
-    if random_init_v:
-        # set velocity to random value
-        init_velocity = numpy.array([random.uniform(-v_max, v_max), random.uniform(-v_max, v_max)])
-    else:
-        # set velocity to zero
-        init_velocity = numpy.array([0, 0])
-
-    # initialize all particles
-    particles = []
-    gbest = numpy.array([-1, -1])
-    gbest_fitness = -1
-
-    for i_particle in range(n_particles):
-        x_rand = random.uniform(frame_range[0], frame_range[1])
-        y_rand = random.uniform(frame_range[0], frame_range[1])
-        init_position = numpy.array([x_rand, y_rand])
-        print(init_position)
-        particle = Particle(init_velocity, init_position)
-
-        if benchmark_function == 'rosenbrock':
-            p_fitness = benchmark_functions.rosenbrock(particle.p)
-
-        if benchmark_function == 'rastrigin':
-            p_fitness = benchmark_functions.rastrigin(particle.p)
-
-        if p_fitness > gbest_fitness:
-            gbest_fitness = p_fitness
-            gbest = particle.p
-
-        particles.append(particle)
+    termination_counter = 0
 
     # init plot
     fig, ax = plt.subplots()
@@ -58,22 +27,14 @@ def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, a, b, 
     y_iterations = []
 
     for iteration in range(n_iterations):
-
-        for particle in particles:
-            particle.update(gbest, a, b, c, r_max, delta_t, v_max, frame_range, oof_strategy)
-            particle.evaluate(benchmark_function)
-
-            if particle.pbest_fitness < gbest_fitness:
-                gbest_fitness = particle.pbest_fitness
-                gbest = particle.pbest
+        population.evaluate_population(benchmark_function)
+        selected = population.selection(n_best_percentage)
+        population.replacement(selected)
+        population.crossover_and_mutation()
 
         print(iteration)
 
-        # decrease a
-        decrease_amount = (0.9 - 0.4) / n_iterations
-        a -= decrease_amount
-
-        x_pos, y_pos = create_scatter_data(particles)
+        x_pos, y_pos = create_scatter_data(population)
         x_iterations.append(x_pos)
         y_iterations.append(y_pos)
 
@@ -90,13 +51,14 @@ def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, a, b, 
         animation.FuncAnimation(fig, animate, interval=20, blit=True, frames=n_iterations, save_count=n_iterations)
 
 
-def create_scatter_data(particles):
+def create_scatter_data(population):
     x_coordinates = []
     y_coordinates = []
 
-    for particle in particles:
-        x_coordinates.append(particle.p[0])
-        y_coordinates.append(particle.p[1])
+    for individual in population.individuals:
+        position = population.toPhenotype(individual)
+        x_coordinates.append(position[0])
+        y_coordinates.append(position[1])
 
     return x_coordinates, y_coordinates
 
@@ -132,7 +94,8 @@ def plot_heatmap(y_coordinates, x_coordinates, data, ax=None):
     return colormesh
 
 
-# def check_termination()
+#def check_termination():
+    # TODO
     # 1. max fitness or
     # 2. good enough or
     # 3. no improvement
@@ -142,24 +105,11 @@ def plot_heatmap(y_coordinates, x_coordinates, data, ax=None):
 
 if __name__ == '__main__':
     evolutionary_algorithm(n_particles=5,
-        n_iterations=130,
+        n_iterations=30,
         benchmark_function='rastrigin',  # rastrigin, rosenbrock
-        a=0.9,
-        b=2,
-        c=2,
-        r_max=1,
-        delta_t=1,
-        frame_range=[-8, 8],
-        random_init_v=False,  # False=init with zero, True=random init
-
-        v_max=5,  # 1, 5 -> performs well
-        # "out of screen strategy"
-        # 0=old position,
-        # 1=change direction,
-        # 2=new random (r1, r2),
-        # 3=only small step in new direction,
-        # 4=old coordinate
-        oof_strategy=4  # 4 is good
+        frame_range=[-4, 4],
+        n_best_percentage=0.2,
+        termination_threshold=5
         )
 
     plt.show()
