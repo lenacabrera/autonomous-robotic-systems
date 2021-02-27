@@ -9,6 +9,56 @@ class Population:
         self.fitness = []
 
 
+    # def build_population(self, n_particles, frame_range):
+    #     # representation -> binary or real-valued?
+    #     # encoding the position (value that minimizes the benchmark functions) -> 2 weights to optimize
+    #     # -> 2 genes
+    #     # TODO: check again (too many 4s)
+    #     # 3 Ziffern: _ , _ _  -> x|y: 1000 , 1000 1000 | 1000 , 1000 1000
+    #     # works only properly with frame_range of 9!
+    #     population = []
+    #
+    #     for i_particle in range(n_particles):
+    #         genotype = []
+    #
+    #         for k in range(2):
+    #
+    #             bit_1 = random.getrandbits(1)
+    #             genotype.append(bit_1)
+    #             if bit_1 == 1:
+    #                 for i in range(11):
+    #                     genotype.append(0)
+    #             else:
+    #                 genotype.append(random.getrandbits(1))
+    #                 genotype.append(random.getrandbits(1))
+    #                 genotype.append(random.getrandbits(1))
+    #
+    #                 bit_2 = random.getrandbits(1)
+    #                 genotype.append(bit_2)
+    #
+    #                 if bit_2 == 1:
+    #                     for i in range(3):
+    #                         genotype.append(0)
+    #                 else:
+    #                     genotype.append(random.getrandbits(1))
+    #                     genotype.append(random.getrandbits(1))
+    #                     genotype.append(random.getrandbits(1))
+    #
+    #                 bit_3 = random.getrandbits(1)
+    #                 genotype.append(bit_3)
+    #
+    #                 if bit_3 == 1:
+    #                     for i in range(3):
+    #                         genotype.append(0)
+    #                 else:
+    #                     genotype.append(random.getrandbits(1))
+    #                     genotype.append(random.getrandbits(1))
+    #                     genotype.append(random.getrandbits(1))
+    #
+    #         population.append(genotype)
+    #
+    #     return population
+
     def build_population(self, n_particles, frame_range):
         # representation -> binary or real-valued?
         # encoding the position (value that minimizes the benchmark functions) -> 2 weights to optimize
@@ -23,38 +73,32 @@ class Population:
 
             for k in range(2):
 
-                bit_1 = random.getrandbits(1)
-                genotype.append(bit_1)
-                if bit_1 == 1:
-                    for i in range(11):
+                random_1 = random.randint(0, 8)
+                random_2 = random.randint(0, 9)
+                random_3 = random.randint(0, 9)
+
+                # first digit
+                binary_1 = [int(x) for x in list('{0:0b}'.format(random_1))]
+                while len(binary_1) < 4:
+                    binary_1 = [0] + binary_1
+                genotype.extend(binary_1)
+                if binary_1[0] == 1:
+                    for i in range(8):
+                        # second + third digit
                         genotype.append(0)
                 else:
-                    genotype.append(random.getrandbits(1))
-                    genotype.append(random.getrandbits(1))
-                    genotype.append(random.getrandbits(1))
+                    # second digit
+                    binary_2 = [int(x) for x in list('{0:0b}'.format(random_2))]
+                    while len(binary_2) < 4:
+                        binary_2 = [0] + binary_2
+                    genotype.extend(binary_2)
+                    # third digit
+                    binary_3 = [int(x) for x in list('{0:0b}'.format(random_3))]
+                    while len(binary_3) < 4:
+                        binary_3 = [0] + binary_3
+                    genotype.extend(binary_3)
 
-                    bit_2 = random.getrandbits(1)
-                    genotype.append(bit_2)
-
-                    if bit_2 == 1:
-                        for i in range(3):
-                            genotype.append(0)
-                    else:
-                        genotype.append(random.getrandbits(1))
-                        genotype.append(random.getrandbits(1))
-                        genotype.append(random.getrandbits(1))
-
-                    bit_3 = random.getrandbits(1)
-                    genotype.append(bit_3)
-
-                    if bit_3 == 1:
-                        for i in range(3):
-                            genotype.append(0)
-                    else:
-                        genotype.append(random.getrandbits(1))
-                        genotype.append(random.getrandbits(1))
-                        genotype.append(random.getrandbits(1))
-
+            # print(genotype)
             population.append(genotype)
 
         return population
@@ -65,8 +109,6 @@ class Population:
 
         start = 0
         step = 4
-
-        print(len(genotype))
 
         for i in range(int(len(genotype)/step)):
 
@@ -85,16 +127,16 @@ class Population:
                 y += "."
 
             start += step
-        # shift to negative
-        print(genotype)
-        print(out)
-        return (float(x) -4, float(y) -4)
+
+        # print(genotype)
+        # print(out)
+        return float(x) - 4, float(y) - 4
 
     def evaluate_population(self, b_func):
         fitness = []
         for individual in self.individuals:
             position = self.toPhenotype(individual)
-            print(position)
+            # print(position)
             if b_func == 'rosenbrock':
                 fitness.append(benchmark_functions.rosenbrock(position))
             if b_func == 'rastrigin':
@@ -106,7 +148,7 @@ class Population:
         n_best = int(len(self.individuals) * n_best_percentage)
         zipped = zip(self.fitness, self.individuals)
         zipped_sorted = sorted(zipped, key=lambda x: x[0], reverse=False)
-        print(zipped_sorted, "zipped sorted")
+        # print(zipped_sorted, "zipped sorted")
         return zipped_sorted[0:n_best]
 
 
@@ -120,7 +162,7 @@ class Population:
                 new_population.append(genotype[1])
         self.individuals = new_population
 
-        print(self.individuals)
+        # print(self.individuals)
 
     def crossover_and_mutation(self):
         # crossover: first and last one

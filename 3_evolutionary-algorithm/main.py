@@ -8,15 +8,11 @@ import benchmark_functions
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-matplotlib.use("TkAgg")
+# matplotlib.use("TkAgg") # for use on MAC
 # This code was jointly programmed by Kathrin Hartmann and Lena Cabrera
 
 
 def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, frame_range, n_best_percentage, termination_threshold):
-
-    population = Population(n_particles, frame_range, benchmark_function)
-
-    termination_counter = 0
 
     # init plot
     fig, ax = plt.subplots()
@@ -26,13 +22,41 @@ def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, frame_
     x_iterations = []
     y_iterations = []
 
-    for iteration in range(n_iterations):
+    population = Population(n_particles, frame_range, benchmark_function)
+    termination_counter = 0
+    n_generations = 0
+    # old_avg_fitness = 1000000
+
+    while True:
+
+        # GENERATION CYCLE
         population.evaluate_population(benchmark_function)
         selected = population.selection(n_best_percentage)
         population.replacement(selected)
         population.crossover_and_mutation()
 
-        print(iteration)
+        # TERMINATION
+        # evaluate fitness of current generation
+        if n_generations == 0:
+            print("once")
+            old_avg_fitness = sum(population.fitness) / len(population.fitness)
+        new_avg_fitness = sum(population.fitness) / len(population.fitness)
+        # check if fitness stagnates
+        if new_avg_fitness >= old_avg_fitness:
+            termination_counter += 1
+        else:
+            termination_counter = 0
+        print("\nold_avg_fitness   new_avg_fitness")
+        print(old_avg_fitness, new_avg_fitness)
+        old_avg_fitness = new_avg_fitness
+        if termination_counter >= termination_threshold:
+            # terminate
+            print("Terminate - because fitness stagnates")
+            print("Average Fitness: ", old_avg_fitness)
+            break
+
+        n_generations += 1
+        print("Generation: ", n_generations)
 
         x_pos, y_pos = create_scatter_data(population)
         x_iterations.append(x_pos)
@@ -45,10 +69,13 @@ def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, frame_
             fig.colorbar(colormesh, cax=cax)
             x_pos = x_iterations[i]
             y_pos = y_iterations[i]
-            print(i)
+            print("Iteration: ", i)
             return plot_scatter(x_pos, y_pos, ax=ax)
 
         animation.FuncAnimation(fig, animate, interval=20, blit=True, frames=n_iterations, save_count=n_iterations)
+
+    # # keep repeating animation
+    # animation.FuncAnimation(fig, animate, interval=20, blit=True, frames=n_iterations, save_count=n_iterations)
 
 
 def create_scatter_data(population):
@@ -94,19 +121,10 @@ def plot_heatmap(y_coordinates, x_coordinates, data, ax=None):
     return colormesh
 
 
-#def check_termination():
-    # TODO
-    # 1. max fitness or
-    # 2. good enough or
-    # 3. no improvement
-
-
-
-
 if __name__ == '__main__':
-    evolutionary_algorithm(n_particles=5,
-        n_iterations=30,
-        benchmark_function='rastrigin',  # rastrigin, rosenbrock
+    evolutionary_algorithm(n_particles=100,
+        n_iterations=130,
+        benchmark_function='rosenbrock',  # rastrigin, rosenbrock
         frame_range=[-4, 4],
         n_best_percentage=0.2,
         termination_threshold=5
