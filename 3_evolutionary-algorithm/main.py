@@ -1,4 +1,5 @@
 from particle import Particle
+from population import Population
 import numpy
 import random
 import benchmark_functions
@@ -11,6 +12,11 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delta_t, frame_range, random_init_v, v_max,
         oof_strategy):
+
+    population = Population(n_particles, frame_range, benchmark_function)
+
+
+
 
     if random_init_v:
         # set velocity to random value
@@ -126,19 +132,6 @@ def plot_heatmap(y_coordinates, x_coordinates, data, ax=None):
     return colormesh
 
 
-
-
-# def build_population():
-    # representation -> binary or real-valued?
-
-# def selection():
-    # truncated rank-based
-
-# def replacement():
-    # generational replacement
-
-# crossover and mutation
-
 # def check_termination()
     # 1. max fitness or
     # 2. good enough or
@@ -148,7 +141,7 @@ def plot_heatmap(y_coordinates, x_coordinates, data, ax=None):
 
 
 if __name__ == '__main__':
-    evolutionary_algorithm(n_particles=20,
+    evolutionary_algorithm(n_particles=5,
         n_iterations=130,
         benchmark_function='rastrigin',  # rastrigin, rosenbrock
         a=0.9,
@@ -156,7 +149,7 @@ if __name__ == '__main__':
         c=2,
         r_max=1,
         delta_t=1,
-        frame_range=[-5, 5],
+        frame_range=[-8, 8],
         random_init_v=False,  # False=init with zero, True=random init
 
         v_max=5,  # 1, 5 -> performs well
