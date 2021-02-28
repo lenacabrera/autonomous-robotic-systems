@@ -1,6 +1,5 @@
 import matplotlib
 
-from particle import Particle
 from population import Population
 import numpy
 import random
@@ -8,7 +7,7 @@ import benchmark_functions
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-# matplotlib.use("TkAgg") # for use on MAC
+matplotlib.use("TkAgg")  # for use on MAC
 # This code was jointly programmed by Kathrin Hartmann and Lena Cabrera
 
 
@@ -26,6 +25,7 @@ def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, frame_
     termination_counter = 0
     n_generations = 0
     # old_avg_fitness = 1000000
+    fitnesses= []
 
     while True:
 
@@ -49,6 +49,7 @@ def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, frame_
         print("\nold_avg_fitness   new_avg_fitness")
         print(old_avg_fitness, new_avg_fitness)
         old_avg_fitness = new_avg_fitness
+        fitnesses.append(old_avg_fitness)
         if termination_counter >= termination_threshold:
             # terminate
             print("Terminate - because fitness stagnates")
@@ -62,30 +63,36 @@ def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, frame_
         x_iterations.append(x_pos)
         y_iterations.append(y_pos)
 
-        def animate(i):
-            ax.clear()
-            colormesh = plot_heatmap(y_coordinates, x_coordinates, heat, ax=ax)
-            cax.cla()
-            fig.colorbar(colormesh, cax=cax)
-            x_pos = x_iterations[i]
-            y_pos = y_iterations[i]
-            print("Iteration: ", i)
-            return plot_scatter(x_pos, y_pos, ax=ax)
 
-        animation.FuncAnimation(fig, animate, interval=20, blit=True, frames=n_iterations, save_count=n_iterations)
+    def animate(i):
+        ax.clear()
+        colormesh = plot_heatmap(y_coordinates, x_coordinates, heat, ax=ax)
+        cax.cla()
+        fig.colorbar(colormesh, cax=cax)
+        x_pos = x_iterations[i]
+        y_pos = y_iterations[i]
+        print("Iteration: ", i)
+        return plot_scatter(x_pos, y_pos, ax=ax)
 
-    # # keep repeating animation
-    # animation.FuncAnimation(fig, animate, interval=20, blit=True, frames=n_iterations, save_count=n_iterations)
+    animation.FuncAnimation(fig, animate, interval=1000, blit=True, frames=n_generations, save_count=n_generations)
+
+    # keep repeating animation
+    #animation.FuncAnimation(fig, animate, interval=20, blit=True, frames=n_iterations, save_count=n_iterations)
+
+    plot_standard_error(n_generations, fitnesses)
 
 
 def create_scatter_data(population):
     x_coordinates = []
     y_coordinates = []
+    positions = []
 
     for individual in population.individuals:
         position = population.toPhenotype(individual)
+        positions.append(position)
         x_coordinates.append(position[0])
         y_coordinates.append(position[1])
+    print(positions)
 
     return x_coordinates, y_coordinates
 
@@ -120,12 +127,32 @@ def plot_heatmap(y_coordinates, x_coordinates, data, ax=None):
     colormesh = ax.pcolormesh(y_coordinates, x_coordinates, data, shading='nearest')
     return colormesh
 
+def plot_standard_error(n_generation, fitness):
+    # generation = np.array([1, 2, 3, 4, 5])
+    # fitness = np.power(x, 2)  # Effectively y = x**2
+    #e = np.array([1.5, 2.6, 3.7, 4.6, 5.5])
+    generation = list(range(2, n_generation + 1))
+    print(fitness)
+    fitness.pop(0)
+    fitness.pop(0)
+    # fitness.pop(0)
+    # fitness.pop(0)
+    # fitness.pop(0)
+    # fitness.pop(0)
+    # fitness.pop(0)
+    # fitness.pop(0)
+
+    fig, ax = plt.subplots()
+    ax.plot(generation, fitness, marker='.')
+
+    plt.show()
+
 
 if __name__ == '__main__':
     evolutionary_algorithm(n_particles=100,
         n_iterations=130,
         benchmark_function='rosenbrock',  # rastrigin, rosenbrock
-        frame_range=[-4, 4],
+        frame_range=[-10, 10],
         n_best_percentage=0.2,
         termination_threshold=5
         )

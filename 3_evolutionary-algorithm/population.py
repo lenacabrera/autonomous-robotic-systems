@@ -8,7 +8,6 @@ class Population:
         self.individuals = self.build_population(n_individuals, frame_range)
         self.fitness = []
 
-
     # def build_population(self, n_particles, frame_range):
     #     # representation -> binary or real-valued?
     #     # encoding the position (value that minimizes the benchmark functions) -> 2 weights to optimize
@@ -151,7 +150,6 @@ class Population:
         # print(zipped_sorted, "zipped sorted")
         return zipped_sorted[0:n_best]
 
-
     def replacement(self, selected):
         # generational replacement
         # TODO: only for populations which are multiples of percent of n_best
@@ -178,17 +176,40 @@ class Population:
         self.individuals[-1] = new_ind_2
 
         # mutation
-        ind_to_mutate = self.individuals[1]
-        random_digit = random.randint(0,2)
+        ind_to_mutate = self.individuals[2]
+        random_digit = random.randint(0, 2)
 
         start = random_digit * 4
 
         if ind_to_mutate[start] == 1:
             ind_to_mutate[start] = 0
-        elif ind_to_mutate[start + 1] == 1:
+        if ind_to_mutate[start + 1] == 1:
             ind_to_mutate[start + 1] = 0
-        elif ind_to_mutate[start + 1] == 0:
+        if ind_to_mutate[start + 1] == 0:
             ind_to_mutate[start + 1] = 1
+        if ind_to_mutate[start + 2] == 1:
+            ind_to_mutate[start + 2] = 0
+        if ind_to_mutate[start + 2] == 0:
+            ind_to_mutate[start + 2] = 1
 
-        self.individuals[1] = ind_to_mutate
+        self.individuals[2] = ind_to_mutate
+
+        # mutation of y as well
+        # ind_to_mutate = self.individuals[-3]
+        # random_digit = random.randint(0, 2)
+        #
+        # start = random_digit * 4
+        #
+        # if ind_to_mutate[start] == 1:
+        #     ind_to_mutate[start] = 0
+        # if ind_to_mutate[start + 1] == 1:
+        #     ind_to_mutate[start + 1] = 0
+        # if ind_to_mutate[start + 1] == 0:
+        #     ind_to_mutate[start + 1] = 1
+        # if ind_to_mutate[start + 2] == 1:
+        #     ind_to_mutate[start + 1] = 0
+        # if ind_to_mutate[start + 2] == 0:
+        #     ind_to_mutate[start + 1] = 1
+        #
+        # self.individuals[-3] = ind_to_mutate
 
