@@ -7,11 +7,12 @@ import benchmark_functions
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-matplotlib.use("TkAgg")  # for use on MAC
+# matplotlib.use("TkAgg")  # for use on MAC
 # This code was jointly programmed by Kathrin Hartmann and Lena Cabrera
 
 
-def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, frame_range, n_best_percentage, termination_threshold):
+def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, frame_range, n_best_percentage,
+                           crossover_percentage, termination_threshold):
 
     # init plot
     fig, ax = plt.subplots()
@@ -33,7 +34,7 @@ def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, frame_
         population.evaluate_population(benchmark_function)
         selected = population.selection(n_best_percentage)
         population.replacement(selected)
-        population.crossover_and_mutation()
+        population.crossover_and_mutation(crossover_percentage, n_best_percentage)
 
         # TERMINATION
         # evaluate fitness of current generation
@@ -72,7 +73,7 @@ def evolutionary_algorithm(n_particles, n_iterations, benchmark_function, frame_
         x_pos = x_iterations[i]
         y_pos = y_iterations[i]
         print("Iteration: ", i)
-        return plot_scatter(x_pos, y_pos, ax=ax)
+        return plot_scatter(x_pos, y_pos, i, ax=ax)
 
     animation.FuncAnimation(fig, animate, interval=1000, blit=True, frames=n_generations, save_count=n_generations)
 
@@ -114,10 +115,13 @@ def create_heatmap_data(benchmark_function, frame_range):
     return y_coordinates, x_coordinates, numpy.array(heatmap_data)
 
 
-def plot_scatter(x, y, ax=None):
+def plot_scatter(x, y, i, ax=None):
     if ax is None:
         ax = plt.gca()
     artists = [ax.scatter(x, y, c='white') for x, y in zip(x, y)]
+    ttl = ax.text(3.5, 3.7, i, color='white')
+
+    artists.append(ttl)
     return artists
 
 
@@ -152,8 +156,9 @@ if __name__ == '__main__':
     evolutionary_algorithm(n_particles=100,
         n_iterations=130,
         benchmark_function='rosenbrock',  # rastrigin, rosenbrock
-        frame_range=[-10, 10],
+        frame_range=[-4, 4],
         n_best_percentage=0.2,
+        crossover_percentage=0.8,
         termination_threshold=5
         )
 

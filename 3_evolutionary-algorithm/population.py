@@ -162,37 +162,112 @@ class Population:
 
         # print(self.individuals)
 
-    def crossover_and_mutation(self):
-        # crossover: first and last one
-        ind_1 = self.individuals[0]
-        ind_2 = self.individuals[-1]
+    def crossover_and_mutation(self, crossover_percentage, n_best_percentage):
 
-        new_ind_1 = ind_1[0:int(len(ind_1) / 2)]
-        new_ind_1.extend(ind_2[int(len(ind_2) / 2):])
-        new_ind_2 = ind_2[0:int(len(ind_2) / 2)]
-        new_ind_2.extend(ind_1[int(len(ind_1) / 2):])
+        n_crossover = int(int(len(self.individuals) * n_best_percentage) * crossover_percentage)
+        unique_individuals_tuple = list(set([tuple(g) for g in self.individuals]))
+        unique_individuals = [list(t) for t in unique_individuals_tuple]
 
-        self.individuals[0] = new_ind_1
-        self.individuals[-1] = new_ind_2
+        # create all possible crossover combinations
+        crossover_combinations = []
+        for idx_individual, individual in enumerate(unique_individuals):
+            individual = unique_individuals[idx_individual]
+            for other_individual in unique_individuals[idx_individual + 1:]:
+                crossover_combinations.append((individual, other_individual))
+
+        while n_crossover > len(crossover_combinations) / 2:
+            n_crossover = n_crossover - 1
+
+        # randomly select n_crossover combinations
+        for c_combination in range(n_crossover):
+
+            idx_combination = random.randint(0, len(crossover_combinations) - 1)
+            combination_tuple = crossover_combinations[idx_combination]
+            ind_1 = combination_tuple[0]
+            ind_2 = combination_tuple[1]
+
+            # do crossover
+            new_ind_1 = ind_1[0:int(len(ind_1) / 2)]
+            new_ind_1.extend(ind_2[int(len(ind_2) / 2):])
+            new_ind_2 = ind_2[0:int(len(ind_2) / 2)]
+            new_ind_2.extend(ind_1[int(len(ind_1) / 2):])
+
+            # remove combination
+            crossover_combinations.pop(idx_combination)
+
+            # replace first individual
+            for idx_ind, individual in enumerate(self.individuals):
+                if self.individuals[idx_ind] == ind_1:
+                    self.individuals[idx_ind] = new_ind_1
+                    break
+
+            # replace second individual
+            for idx_ind, individual in enumerate(self.individuals):
+                if self.individuals[idx_ind] == ind_2:
+                    self.individuals[idx_ind] = new_ind_2
+                    break
+
+        # # crossover: first and last one
+        # ind_1 = self.individuals[0]
+        # ind_2 = self.individuals[-1]
+        #
+        # new_ind_1 = ind_1[0:int(len(ind_1) / 2)]
+        # new_ind_1.extend(ind_2[int(len(ind_2) / 2):])
+        # new_ind_2 = ind_2[0:int(len(ind_2) / 2)]
+        # new_ind_2.extend(ind_1[int(len(ind_1) / 2):])
+        #
+        # self.individuals[0] = new_ind_1
+        # self.individuals[-1] = new_ind_2
+
+
+
 
         # mutation
-        ind_to_mutate = self.individuals[2]
+        ind_to_mutate = self.individuals[-1]
         random_digit = random.randint(0, 2)
+
+        print(self.toPhenotype(ind_to_mutate))
 
         start = random_digit * 4
 
         if ind_to_mutate[start] == 1:
+            # change first digit
             ind_to_mutate[start] = 0
-        if ind_to_mutate[start + 1] == 1:
-            ind_to_mutate[start + 1] = 0
-        if ind_to_mutate[start + 1] == 0:
-            ind_to_mutate[start + 1] = 1
-        if ind_to_mutate[start + 2] == 1:
-            ind_to_mutate[start + 2] = 0
-        if ind_to_mutate[start + 2] == 0:
-            ind_to_mutate[start + 2] = 1
+        else:
+            # change second and third digit
+            if ind_to_mutate[start + 1] == 1:
+                ind_to_mutate[start + 1] = 0
+            else:
+                ind_to_mutate[start + 1] = 1
 
-        self.individuals[2] = ind_to_mutate
+            if ind_to_mutate[start + 2] == 1:
+                ind_to_mutate[start + 2] = 0
+            else:
+                ind_to_mutate[start + 2] = 1
+
+        self.individuals[-1] = ind_to_mutate
+
+        print(self.toPhenotype(ind_to_mutate))
+
+
+        # # mutation
+        # ind_to_mutate = self.individuals[2]
+        # random_digit = random.randint(0, 2)
+        #
+        # start = random_digit * 4
+        #
+        # if ind_to_mutate[start] == 1:
+        #     ind_to_mutate[start] = 0
+        # if ind_to_mutate[start + 1] == 1:
+        #     ind_to_mutate[start + 1] = 0
+        # if ind_to_mutate[start + 1] == 0:
+        #     ind_to_mutate[start + 1] = 1
+        # if ind_to_mutate[start + 2] == 1:
+        #     ind_to_mutate[start + 2] = 0
+        # if ind_to_mutate[start + 2] == 0:
+        #     ind_to_mutate[start + 2] = 1
+        #
+        # self.individuals[2] = ind_to_mutate
 
         # mutation of y as well
         # ind_to_mutate = self.individuals[-3]
