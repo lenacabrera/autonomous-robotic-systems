@@ -98,7 +98,6 @@ class Population:
 
     def replacement(self, selected):
         # generational replacement
-        # TODO: only for populations which are multiples of percent of n_best
         n_copy = int(len(self.individuals) / len(selected))
         difference = len(self.individuals) - (len(selected) * n_copy)
 
