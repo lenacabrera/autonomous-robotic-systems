@@ -57,8 +57,8 @@ def evolutionary_algorithm(n_individuals, n_iterations, benchmark_function, fram
             if n_generations == n_iterations:
                 print("Terminate - because maximum number of generations reached")
             print("Average Fitness: ", old_avg_fitness)
-            for i in population.individuals:
-                print(population.toPhenotype(i))
+            # for i in population.individuals:
+            #     print(population.toPhenotype(i))
             break
 
         n_generations += 1
@@ -144,13 +144,13 @@ def plot_standard_error(n_generation, fitness):
 
 
 if __name__ == '__main__':
-    evolutionary_algorithm(n_individuals=109,
+    evolutionary_algorithm(n_individuals=100,
                            n_iterations=100,
                            benchmark_function='rastrigin',  # rastrigin, rosenbrock
                            frame_range=[-4, 4],
-                           n_best_percentage=0.3,     # 0.2
-                           crossover_percentage=0.6,  # 0.8, 0.6
-                           mutation_percentage=0.1,  # 0.1, 0.05
+                           n_best_percentage=0.2,     # 0.2, 0.3, 0.4
+                           crossover_percentage=0.6,  # 0.2, 0.3, 0.4, 0.5, 0.6
+                           mutation_percentage=0.1,   # 0.1, 0.05
                            termination_threshold=5    # 5
                            )
 
