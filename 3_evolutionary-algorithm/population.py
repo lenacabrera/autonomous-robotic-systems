@@ -8,61 +8,10 @@ class Population:
         self.individuals = self.build_population(n_individuals, frame_range)
         self.fitness = []
 
-    # def build_population(self, n_particles, frame_range):
-    #     # representation -> binary or real-valued?
-    #     # encoding the position (value that minimizes the benchmark functions) -> 2 weights to optimize
-    #     # -> 2 genes
-    #     # TODO: check again (too many 4s)
-    #     # 3 Ziffern: _ , _ _  -> x|y: 1000 , 1000 1000 | 1000 , 1000 1000
-    #     # works only properly with frame_range of 9!
-    #     population = []
-    #
-    #     for i_particle in range(n_particles):
-    #         genotype = []
-    #
-    #         for k in range(2):
-    #
-    #             bit_1 = random.getrandbits(1)
-    #             genotype.append(bit_1)
-    #             if bit_1 == 1:
-    #                 for i in range(11):
-    #                     genotype.append(0)
-    #             else:
-    #                 genotype.append(random.getrandbits(1))
-    #                 genotype.append(random.getrandbits(1))
-    #                 genotype.append(random.getrandbits(1))
-    #
-    #                 bit_2 = random.getrandbits(1)
-    #                 genotype.append(bit_2)
-    #
-    #                 if bit_2 == 1:
-    #                     for i in range(3):
-    #                         genotype.append(0)
-    #                 else:
-    #                     genotype.append(random.getrandbits(1))
-    #                     genotype.append(random.getrandbits(1))
-    #                     genotype.append(random.getrandbits(1))
-    #
-    #                 bit_3 = random.getrandbits(1)
-    #                 genotype.append(bit_3)
-    #
-    #                 if bit_3 == 1:
-    #                     for i in range(3):
-    #                         genotype.append(0)
-    #                 else:
-    #                     genotype.append(random.getrandbits(1))
-    #                     genotype.append(random.getrandbits(1))
-    #                     genotype.append(random.getrandbits(1))
-    #
-    #         population.append(genotype)
-    #
-    #     return population
-
     def build_population(self, n_particles, frame_range):
         # representation -> binary or real-valued?
         # encoding the position (value that minimizes the benchmark functions) -> 2 weights to optimize
         # -> 2 genes
-        # TODO: check again (too many 4s)
         # 3 Ziffern: _ , _ _  -> x|y: 1000 , 1000 1000 | 1000 , 1000 1000
         # works only properly with frame_range of 9!
         population = []
@@ -96,8 +45,6 @@ class Population:
                     while len(binary_3) < 4:
                         binary_3 = [0] + binary_3
                     genotype.extend(binary_3)
-
-            # print(genotype)
             population.append(genotype)
 
         return population
@@ -147,23 +94,30 @@ class Population:
         n_best = int(len(self.individuals) * n_best_percentage)
         zipped = zip(self.fitness, self.individuals)
         zipped_sorted = sorted(zipped, key=lambda x: x[0], reverse=False)
-        # print(zipped_sorted, "zipped sorted")
         return zipped_sorted[0:n_best]
 
     def replacement(self, selected):
         # generational replacement
         # TODO: only for populations which are multiples of percent of n_best
         n_copy = int(len(self.individuals) / len(selected))
+        difference = len(self.individuals) - (len(selected) * n_copy)
+
         new_population = []
         for genotype in selected:
             for i in range(n_copy):
                 new_population.append(genotype[1])
+
+        for genotype in selected:
+            if difference > 0:
+                new_population.append(genotype[1])
+                difference -= 1
+            else:
+                break
         self.individuals = new_population
 
-        # print(self.individuals)
+    def crossover_and_mutation(self, crossover_percentage, mutation_percentage, n_best_percentage):
 
-    def crossover_and_mutation(self, crossover_percentage, n_best_percentage):
-
+        # CROSSOVER
         n_crossover = int(int(len(self.individuals) * n_best_percentage) * crossover_percentage)
         unique_individuals_tuple = list(set([tuple(g) for g in self.individuals]))
         unique_individuals = [list(t) for t in unique_individuals_tuple]
@@ -207,84 +161,45 @@ class Population:
                     self.individuals[idx_ind] = new_ind_2
                     break
 
-        # # crossover: first and last one
-        # ind_1 = self.individuals[0]
-        # ind_2 = self.individuals[-1]
-        #
-        # new_ind_1 = ind_1[0:int(len(ind_1) / 2)]
-        # new_ind_1.extend(ind_2[int(len(ind_2) / 2):])
-        # new_ind_2 = ind_2[0:int(len(ind_2) / 2)]
-        # new_ind_2.extend(ind_1[int(len(ind_1) / 2):])
-        #
-        # self.individuals[0] = new_ind_1
-        # self.individuals[-1] = new_ind_2
+        # MUTATION
+        # check if mutation should occur
+        whole_range = list(range(0, 100))
+        percentage_range = whole_range[0:int(100*mutation_percentage)]
+        if random.randint(0, 100) in percentage_range:
 
+            # select random individual
+            idx_mutate = random.randint(0, len(self.individuals)-1)
+            ind_to_mutate = self.individuals[idx_mutate]
 
+            # x = 0, y = 1
+            coordinate_to_mutate = random.randint(0, 1)
 
+            if coordinate_to_mutate == 0:
+                # mutate x coordinate
+                random_digit = random.randint(0, 2)
 
-        # mutation
-        ind_to_mutate = self.individuals[-1]
-        random_digit = random.randint(0, 2)
-
-        print(self.toPhenotype(ind_to_mutate))
-
-        start = random_digit * 4
-
-        if ind_to_mutate[start] == 1:
-            # change first digit
-            ind_to_mutate[start] = 0
-        else:
-            # change second and third digit
-            if ind_to_mutate[start + 1] == 1:
-                ind_to_mutate[start + 1] = 0
             else:
-                ind_to_mutate[start + 1] = 1
+                # mutate y coordinate
+                random_digit = random.randint(3, 5)
 
-            if ind_to_mutate[start + 2] == 1:
-                ind_to_mutate[start + 2] = 0
+            start = random_digit * 4
+
+            if ind_to_mutate[start] == 1:
+                # change first digit
+                ind_to_mutate[start] = 0
             else:
-                ind_to_mutate[start + 2] = 1
+                # change second OR third digit
+                if random.randint(0, 1) == 0:
+                    # change second digit
+                    if ind_to_mutate[start + 1] == 1:
+                        ind_to_mutate[start + 1] = 0
+                    else:
+                        ind_to_mutate[start + 1] = 1
+                else:
+                    # change third digit
+                    if ind_to_mutate[start + 2] == 1:
+                        ind_to_mutate[start + 2] = 0
+                    else:
+                        ind_to_mutate[start + 2] = 1
 
-        self.individuals[-1] = ind_to_mutate
-
-        print(self.toPhenotype(ind_to_mutate))
-
-
-        # # mutation
-        # ind_to_mutate = self.individuals[2]
-        # random_digit = random.randint(0, 2)
-        #
-        # start = random_digit * 4
-        #
-        # if ind_to_mutate[start] == 1:
-        #     ind_to_mutate[start] = 0
-        # if ind_to_mutate[start + 1] == 1:
-        #     ind_to_mutate[start + 1] = 0
-        # if ind_to_mutate[start + 1] == 0:
-        #     ind_to_mutate[start + 1] = 1
-        # if ind_to_mutate[start + 2] == 1:
-        #     ind_to_mutate[start + 2] = 0
-        # if ind_to_mutate[start + 2] == 0:
-        #     ind_to_mutate[start + 2] = 1
-        #
-        # self.individuals[2] = ind_to_mutate
-
-        # mutation of y as well
-        # ind_to_mutate = self.individuals[-3]
-        # random_digit = random.randint(0, 2)
-        #
-        # start = random_digit * 4
-        #
-        # if ind_to_mutate[start] == 1:
-        #     ind_to_mutate[start] = 0
-        # if ind_to_mutate[start + 1] == 1:
-        #     ind_to_mutate[start + 1] = 0
-        # if ind_to_mutate[start + 1] == 0:
-        #     ind_to_mutate[start + 1] = 1
-        # if ind_to_mutate[start + 2] == 1:
-        #     ind_to_mutate[start + 1] = 0
-        # if ind_to_mutate[start + 2] == 0:
-        #     ind_to_mutate[start + 1] = 1
-        #
-        # self.individuals[-3] = ind_to_mutate
-
+            self.individuals[idx_mutate] = ind_to_mutate
