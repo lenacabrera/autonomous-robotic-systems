@@ -1,131 +1,17 @@
-
-from population import Population
-import numpy
-import random
-import benchmark_functions
+import pygame
+import sys
+from robot import Robot
+import math
+import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+from config import Configuration
+import evolution
 
-# matplotlib.use("TkAgg")  # for use on MAC
-
-# This code was jointly programmed by Kathrin Hartmann and Lena Cabrera
-
-
-def evolutionary_algorithm(n_individuals, n_iterations, benchmark_function, frame_range, n_best_percentage,
-                           crossover_percentage, mutation_percentage, termination_threshold):
-    # init plot
-    fig, ax = plt.subplots()
-    y_coordinates, x_coordinates, heat = create_heatmap_data(benchmark_function, frame_range)
-    div = make_axes_locatable(ax)
-    cax = div.append_axes('right', '5%', '5%')
-    x_iterations = []
-    y_iterations = []
-
-    population = Population(n_individuals, frame_range, benchmark_function)
-    population.evaluate_population(benchmark_function)
-    termination_counter = 0
-    n_generations = 0
-    fitnesses = []
-
-    while True:
-
-        # GENERATION CYCLE
-        selected = population.selection(n_best_percentage)
-        population.replacement(selected)
-        population.crossover_and_mutation(crossover_percentage, mutation_percentage, n_best_percentage)
-        population.evaluate_population(benchmark_function)
-
-        # TERMINATION
-        # evaluate fitness of current generation
-        if n_generations == 0:
-            old_avg_fitness = sum(population.fitness) / len(population.fitness)
-        new_avg_fitness = sum(population.fitness) / len(population.fitness)
-        if new_avg_fitness >= old_avg_fitness:
-            # fitness stagnates or gets worse
-            termination_counter += 1
-        else:
-            termination_counter = 0
-        print("\nold_avg_fitness   new_avg_fitness")
-        print(old_avg_fitness, new_avg_fitness)
-        old_avg_fitness = new_avg_fitness
-        fitnesses.append(old_avg_fitness)
-        if termination_counter >= termination_threshold or n_generations == n_iterations:
-            # terminate
-            if termination_counter >= termination_threshold:
-                print("Terminate - because fitness stagnates")
-            if n_generations == n_iterations:
-                print("Terminate - because maximum number of generations reached")
-            print("Average Fitness: ", old_avg_fitness)
-            # for i in population.individuals:
-            #     print(population.toPhenotype(i))
-            break
-
-        n_generations += 1
-        print("Generation: ", n_generations)
-
-        x_pos, y_pos = create_scatter_data(population)
-        x_iterations.append(x_pos)
-        y_iterations.append(y_pos)
-
-    def animate(i):
-        ax.clear()
-        colormesh = plot_heatmap(y_coordinates, x_coordinates, heat, ax=ax)
-        cax.cla()
-        fig.colorbar(colormesh, cax=cax)
-        x_pos = x_iterations[i]
-        y_pos = y_iterations[i]
-        print("Iteration: ", i)
-        return plot_scatter(x_pos, y_pos, i, ax=ax)
-
-    animation.FuncAnimation(fig, animate, interval=1000, blit=True, frames=n_generations, save_count=n_generations)
-    plot_standard_error(n_generations, fitnesses)
+# Note, for use on MAC uncomment the following line
+# matplotlib.use("TkAgg")
 
 
-def create_scatter_data(population):
-    x_coordinates = []
-    y_coordinates = []
-    positions = []
-    for individual in population.individuals:
-        position = population.toPhenotype(individual)
-        positions.append(position)
-        x_coordinates.append(position[0])
-        y_coordinates.append(position[1])
-    return x_coordinates, y_coordinates
-
-
-def create_heatmap_data(benchmark_function, frame_range):
-    heatmap_data = []
-    x_coordinates = list(numpy.linspace(frame_range[0], frame_range[1], 200))
-    y_coordinates = x_coordinates
-    for y in y_coordinates:
-        new_row = []
-        for x in x_coordinates:
-            if benchmark_function == "rosenbrock":
-                new_row.append(benchmark_functions.rosenbrock([x, y]))
-            if benchmark_function == "rastrigin":
-                new_row.append(benchmark_functions.rastrigin([x, y]))
-        heatmap_data.append(new_row)
-    return y_coordinates, x_coordinates, numpy.array(heatmap_data)
-
-
-def plot_scatter(x, y, i, ax=None):
-    if ax is None:
-        ax = plt.gca()
-    artists = [ax.scatter(x, y, c='white') for x, y in zip(x, y)]
-    ttl = ax.text(3.5, 3.7, i, color='white')
-    artists.append(ttl)
-    return artists
-
-
-def plot_heatmap(y_coordinates, x_coordinates, data, ax=None):
-    if ax is None:
-        ax = plt.gca()
-    colormesh = ax.pcolormesh(y_coordinates, x_coordinates, data, shading='nearest')
-    return colormesh
-
-
-def plot_standard_error(n_generation, fitness):
+def plot_avg_fitness(n_generation, fitness):
     # generation = np.array([1, 2, 3, 4, 5])
     # fitness = np.power(x, 2)  # Effectively y = x**2
     # e = np.array([1.5, 2.6, 3.7, 4.6, 5.5])
@@ -143,15 +29,193 @@ def plot_standard_error(n_generation, fitness):
     plt.show()
 
 
-if __name__ == '__main__':
-    evolutionary_algorithm(n_individuals=100,
-                           n_iterations=100,
-                           benchmark_function='rastrigin',  # rastrigin, rosenbrock
-                           frame_range=[-4, 4],
-                           n_best_percentage=0.2,     # 0.2, 0.3, 0.4
-                           crossover_percentage=0.6,  # 0.2, 0.3, 0.4, 0.5, 0.6
-                           mutation_percentage=0.1,   # 0.1, 0.05
-                           termination_threshold=5    # 5
-                           )
+def draw_walls(screen, walls, wall_thickness, wall_color):
+    # left
+    pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
+                     start_pos=walls['left'][0],
+                     end_pos=walls['left'][1])
 
-    plt.show()
+    # top
+    pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
+                     start_pos=walls['top'][0],
+                     end_pos=walls['top'][1])
+    # right
+    pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
+                     start_pos=walls['right'][0],
+                     end_pos=walls['right'][1])
+
+    # bottom
+    pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
+                     start_pos=walls['bottom'][0],
+                     end_pos=walls['bottom'][1])
+
+
+def draw_robot(screen, robot, robot_color, distance_values, font, draw_sensors=False):
+    # body of robot
+    pygame.draw.circle(surface=screen, color=robot_color, center=(robot.x, robot.y), radius=robot.radius)
+    # orientation of robot
+    pygame.draw.line(surface=screen, color=(0, 0, 0), width=2,
+                     start_pos=(robot.x, robot.y), end_pos=robot.orientation)
+    # sensors
+    if draw_sensors:
+        for i_sensor, (x_sensor, y_sensor) in enumerate(robot.sensor_list):
+            angle = (i_sensor + 1) * 360 / robot.num_sensors
+            sensor_start_x = robot.x + math.cos(angle * math.pi / 180) * robot.radius
+            sensor_start_y = robot.y + math.sin(angle * math.pi / 180) * robot.radius
+
+            sensor_length = robot.radius + distance_values[i_sensor]
+
+            sensor_end_x = robot.x + math.cos(angle * math.pi / 180) * sensor_length
+            sensor_end_y = robot.y + math.sin(angle * math.pi / 180) * sensor_length
+
+            pygame.draw.line(surface=screen, color=(255, 0, 0), width=1,
+                             start_pos=(sensor_start_x, sensor_start_y), end_pos=(sensor_end_x, sensor_end_y))
+
+            # display sensor values
+            text = str(int(distance_values[i_sensor]))
+            textsurface = font.render(text, False, (0, 0, 0))
+            screen.blit(textsurface, (sensor_end_x - 7 + math.cos(angle * math.pi / 180) * robot.radius / 4,
+                                      sensor_end_y - 7 + math.sin(angle * math.pi / 180) * robot.radius / 4))
+
+    # display motor speed values
+    text = str(int(robot.v_wheel_r))
+    textsurface = font.render(text, False, (0, 0, 0))
+    screen.blit(textsurface, (robot.x + np.cos(robot.line_angle + math.pi / 2) * robot.radius / 2,
+                              robot.y + np.sin(robot.line_angle + math.pi / 2) * robot.radius / 2))
+
+    text = str(int(robot.v_wheel_l))
+    textsurface = font.render(text, False, (0, 0, 0))
+    screen.blit(textsurface, (robot.x + np.cos(robot.line_angle + 3 * math.pi / 2) * robot.radius / 2,
+                              robot.y + np.sin(robot.line_angle + 3 * math.pi / 2) * robot.radius / 2))
+
+
+def init_walls_coordinates(env_width, env_height, wall_length):
+    # wall frame distance
+    dist_l_r = (env_width - wall_length) / 2  # distance to frame, left and right
+    dist_t_b = (env_height - wall_length) / 2  # distance to frame, top and bottom
+
+    left_start = (dist_l_r, dist_t_b)
+    left_end = (dist_l_r, dist_t_b + wall_length)
+
+    top_start = (dist_l_r, dist_t_b)
+    top_end = (dist_l_r + wall_length, dist_t_b)
+
+    right_start = (dist_l_r + wall_length, dist_t_b)
+    right_end = (dist_l_r + wall_length, dist_t_b + wall_length)
+
+    bottom_start = (dist_l_r, dist_t_b + wall_length)
+    bottom_end = (dist_l_r + wall_length, dist_t_b + wall_length)
+
+    walls = {
+        'left': [left_start, left_end],
+        'top': [top_start, top_end],
+        'right': [right_start, right_end],
+        'bottom': [bottom_start, bottom_end],
+    }
+
+    return walls
+
+
+def initialize_pygame(c):
+    pygame.init()
+    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode([c.env_width, c.env_height])
+    screen.fill((255, 255, 255))  # background
+    font = pygame.font.SysFont('Arial', 14)  # displayed numbers
+    timer_event = pygame.USEREVENT + 1
+    time = 250 # TODO: fine-tuning
+    pygame.time.set_timer(timer_event, time)
+
+    return screen, timer_event, font
+
+
+if __name__ == '__main__':
+
+    # load configuration parameters
+    c = Configuration()
+
+    # initializations
+    screen, timer_event, font = initialize_pygame(c)
+    robot = Robot(x=c.x, y=c.y, radius=c.radius, num_sensors=c.num_sensors, max_sensor_reach=c.max_sensor_reach)
+    walls = init_walls_coordinates(c.env_width, c.env_height, c.wall_length)
+
+    # evolutionary algorithm
+    while True:
+
+        for event in pygame.event.get():
+            # for key / action
+            if event.type == pygame.QUIT:
+                # termination
+                sys.exit()
+
+            pressed_keys = pygame.key.get_pressed()
+
+            if c.steering == "keyboard":
+                # manually drive robot
+
+                # check it speed exceeds (positive) maximum velocity (forward movement)
+                if (robot.v_wheel_l + robot.v_wheel_r) / 2 < c.v_max:
+                    if pressed_keys[pygame.K_w]:
+                        robot.v_wheel_l += c.v
+                    if pressed_keys[pygame.K_o]:
+                        robot.v_wheel_r += c.v
+                    if pressed_keys[pygame.K_t]:
+                        robot.v_wheel_l += c.v
+                        robot.v_wheel_r += c.v
+                    if pressed_keys[pygame.K_x]:
+                        robot.v_wheel_l = 0
+                        robot.v_wheel_r = 0
+
+                # check it speed exceeds (negative) maximum velocity (backward movement)
+                if (robot.v_wheel_l + robot.v_wheel_r) / 2 > - c.v_max:
+                    if pressed_keys[pygame.K_s]:
+                        robot.v_wheel_l -= c.v
+                    if pressed_keys[pygame.K_l]:
+                        robot.v_wheel_r -= c.v
+                    if pressed_keys[pygame.K_g]:
+                        robot.v_wheel_l -= c.v
+                        robot.v_wheel_r -= c.v
+                    if pressed_keys[pygame.K_x]:
+                        robot.v_wheel_l = 0
+                        robot.v_wheel_r = 0
+
+            else:
+                # autonomous driving
+                pass
+
+
+            # update screen by providing timer-event
+            if event.type == timer_event:
+                # update robot position
+                robot.set_new_position(delta_t=0.1)
+
+                # check for collision
+                robot.robot_is_crossing_wall(walls)
+
+                # sensor value update
+                robot.update_sensors()
+                sensor_d = robot.get_sensor_distance_values(walls)
+
+                # clear screen
+                screen.fill((255, 255, 255))
+
+                # draw scene
+                draw_walls(screen, walls, c.wall_thickness, c.wall_color)
+                draw_robot(screen, robot, c.robot_color, sensor_d, font, draw_sensors=True)
+
+                # update display
+                pygame.display.update()
+
+        n_generations, fitnesses = evolution.evolutionary_algorithm(n_individuals=c.n_individuals,
+                                                     n_iterations=c.n_iterations,
+                                                     benchmark_function=c.benchmark_function,
+                                                     frame_range=c.frame_range,
+                                                     n_best_percentage=c.n_best_percentage,
+                                                     crossover_percentage=c.crossover_percentage,
+                                                     mutation_percentage=c.mutation_percentage,
+                                                     termination_threshold=c.termination_threshold
+                                                     )
+
+        # plot_avg_fitness(n_generations, fitnesses)
+        # TODO plot max fitness
+

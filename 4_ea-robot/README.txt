@@ -1,4 +1,5 @@
 Evolutionary Algorithm for benchmark functions "rosenbrock" and "rastrigin"
+(This program was jointly programmed by Kathrin Hartmann and Lena Cabrera)
 
 Use of program:
 
