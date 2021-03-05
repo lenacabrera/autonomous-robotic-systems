@@ -1,9 +1,12 @@
 from population import Population
+import numpy as np
+from neural_network import ANN
 
-def evolutionary_algorithm(n_individuals, n_iterations, benchmark_function, frame_range, n_best_percentage,
-                           crossover_percentage, mutation_percentage, termination_threshold):
+def evolutionary_algorithm(n_individuals, n_iterations, benchmark_function, n_best_percentage,
+                           crossover_percentage, mutation_percentage, termination_threshold, num_sensors,
+                           hidden_dim, sensor_distances, max_sensor_reach):
 
-    population = Population(n_individuals, frame_range, benchmark_function)
+    population = Population(n_individuals, benchmark_function, num_sensors, hidden_dim)
     population.evaluate_population(benchmark_function)
     termination_counter = 0
     n_generations = 0
@@ -38,8 +41,6 @@ def evolutionary_algorithm(n_individuals, n_iterations, benchmark_function, fram
             if n_generations == n_iterations:
                 print("Terminate - because maximum number of generations reached")
             print("Average Fitness: ", old_avg_fitness)
-            # for i in population.individuals:
-            #     print(population.toPhenotype(i))
             break
 
         n_generations += 1

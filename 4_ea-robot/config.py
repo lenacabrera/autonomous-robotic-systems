@@ -34,5 +34,8 @@ class Configuration:
         self.mutation_percentage = 0.1
         self.termination_threshold = 5
 
+        # ANN
+        self.hidden_dim = 4
+
         # debugging
         self.steering = "keyboard"  # keyboard, autonomous
