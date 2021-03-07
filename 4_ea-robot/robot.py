@@ -45,11 +45,24 @@ class Robot:
         for sensor_id in range(self.num_sensors):
             angle = (sensor_id + 1) * 360 / self.num_sensors
             length_sensor_line = self.radius + self.max_sensor_reach
-            x_sensor = self.x + length_sensor_line * math.cos(angle * math.pi / 180)
-            y_sensor = self.y + length_sensor_line * math.sin(angle * math.pi / 180)
+            radians = math.atan2((self.orientation[1] - self.y), (self.orientation[0] - self.x))
+            x_sensor = self.x + length_sensor_line * math.cos(angle * math.pi / 180 + radians)
+            y_sensor = self.y + length_sensor_line * math.sin(angle * math.pi / 180 + radians)
             sensors.append((x_sensor, y_sensor))
 
         self.sensor_list = sensors
+
+    # def update_sensors(self):
+    #     # update coordinates of sensors after robot has moved
+    #     sensors = []
+    #     for sensor_id in range(self.num_sensors):
+    #         angle = (sensor_id + 1) * 360 / self.num_sensors
+    #         length_sensor_line = self.radius + self.max_sensor_reach
+    #         x_sensor = self.x + length_sensor_line * math.cos(angle * math.pi / 180)
+    #         y_sensor = self.y + length_sensor_line * math.sin(angle * math.pi / 180)
+    #         sensors.append((x_sensor, y_sensor))
+    #
+    #     self.sensor_list = sensors
 
     def robot_is_crossing_wall(self, walls):
         # check if robot crosses the wall and if so update position

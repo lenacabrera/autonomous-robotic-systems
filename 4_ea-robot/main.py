@@ -5,12 +5,9 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from config import Configuration
-
-
 import evolution
-
-# Note, for use on MAC uncomment the following line
-# matplotlib.use("TkAgg")
+from neural_network import ANN
+from population import Population
 
 
 def plot_avg_fitness(n_generation, fitness):
@@ -62,13 +59,13 @@ def draw_robot(screen, robot, robot_color, distance_values, font, draw_sensors=F
     if draw_sensors:
         for i_sensor, (x_sensor, y_sensor) in enumerate(robot.sensor_list):
             angle = (i_sensor + 1) * 360 / robot.num_sensors
-            sensor_start_x = robot.x + math.cos(angle * math.pi / 180) * robot.radius
-            sensor_start_y = robot.y + math.sin(angle * math.pi / 180) * robot.radius
-
+            radians = math.atan2((y_sensor - robot.y), (x_sensor - robot.x))
             sensor_length = robot.radius + distance_values[i_sensor]
 
-            sensor_end_x = robot.x + math.cos(angle * math.pi / 180) * sensor_length
-            sensor_end_y = robot.y + math.sin(angle * math.pi / 180) * sensor_length
+            sensor_start_x = robot.x + math.cos(radians) * robot.radius
+            sensor_start_y = robot.y + math.sin(radians) * robot.radius
+            sensor_end_x = robot.x + sensor_length * math.cos(radians)
+            sensor_end_y = robot.y + sensor_length * math.sin(radians)
 
             pygame.draw.line(surface=screen, color=(255, 0, 0), width=1,
                              start_pos=(sensor_start_x, sensor_start_y), end_pos=(sensor_end_x, sensor_end_y))
@@ -117,12 +114,6 @@ def init_walls_coordinates(env_width, env_height, wall_length):
 
     return walls
 
-def init_grid(square_size, width):
-    grid = np.zeros((int(width/square_size), int(width/square_size)))
-    return grid
-
-
-
 
 def initialize_pygame(c):
     pygame.init()
@@ -131,7 +122,7 @@ def initialize_pygame(c):
     screen.fill((255, 255, 255))  # background
     font = pygame.font.SysFont('Arial', 14)  # displayed numbers
     timer_event = pygame.USEREVENT + 1
-    time = 250 # TODO: fine-tuning
+    time = 250  # TODO: fine-tuning
     pygame.time.set_timer(timer_event, time)
 
     return screen, timer_event, font
@@ -212,7 +203,6 @@ if __name__ == '__main__':
                 # autonomous driving
                 pass
 
-
             # update screen by providing timer-event
             if event.type == timer_event:
                 # update robot position
@@ -240,16 +230,39 @@ if __name__ == '__main__':
                 # screen.blit(game_surf, (0, 0))
                 pygame.display.update()
 
+
+
+            #### TESTS
+            sensor_d = robot.get_sensor_distance_values(walls)
+            # sensor_d = [5, 10, 60, 20, 5, 12, 34, 65, 75, 55, 7, 25]
+            # genotype = [1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0]
+            # ann = ANN(sensor_d, genotype, c.hidden_dim, c.max_sensor_reach)
+            # velocities = ann.decode_genotype(sensor_d)
+            # print(velocities)
+
+            population = Population(c.n_individuals, c.benchmark_function, c.num_sensors, c.hidden_dim)
+
+            for genotype in population.individuals:
+                ann = ANN(sensor_d, genotype, c.hidden_dim, c.max_sensor_reach)
+                velocities = ann.decode_genotype(sensor_d)
+                print(velocities)
+
+
+
+
+
         # n_generations, fitnesses = evolution.evolutionary_algorithm(n_individuals=c.n_individuals,
-        #                                              n_iterations=c.n_iterations,
-        #                                              benchmark_function=c.benchmark_function,
-        #                                              frame_range=c.frame_range,
-        #                                              n_best_percentage=c.n_best_percentage,
-        #                                              crossover_percentage=c.crossover_percentage,
-        #                                              mutation_percentage=c.mutation_percentage,
-        #                                              termination_threshold=c.termination_threshold
-        #                                              )
+        #                                                             n_iterations=c.n_iterations,
+        #                                                             benchmark_function=c.benchmark_function,
+        #                                                             n_best_percentage=c.n_best_percentage,
+        #                                                             crossover_percentage=c.crossover_percentage,
+        #                                                             mutation_percentage=c.mutation_percentage,
+        #                                                             termination_threshold=c.termination_threshold,
+        #                                                             num_sensors=c.num_sensors,
+        #                                                             hidden_dim=c.hidden_dim,
+        #                                                             sensor_distances=sensor_d,
+        #                                                             max_sensor_reach=c.max_sensor_reach
+        #                                                             )
 
         # plot_avg_fitness(n_generations, fitnesses)
         # TODO plot max fitness
-
