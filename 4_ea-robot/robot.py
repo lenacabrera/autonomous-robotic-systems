@@ -1,6 +1,8 @@
 import numpy as np
 import math
 from shapely.geometry import LineString
+from shapely.geometry import Point
+from shapely.ops import cascaded_union
 
 
 class Robot:
@@ -23,8 +25,19 @@ class Robot:
         self.sensor_list = []
         self.init_sensors()
 
+        self.positions = [(self.x, self.y)]
+        self.circles = [Point(self.x, self.y).buffer(self.radius)]
+
+        self.score = 0 #self.circles[0].area
+
     def init_sensors(self):
         self.update_sensors()
+
+    def update_score(self):
+        # for i in range(len(self.circles) - 2):
+        polygon = cascaded_union(self.circles[:-2])
+        intersection = polygon.intersection(self.circles[-1]).area
+        self.score += (self.circles[-1].area - intersection)
 
     def update_sensors(self):
         # update coordinates of sensors after robot has moved
@@ -73,6 +86,12 @@ class Robot:
 
         self.x = x
         self.y = y
+
+        # if self.x != self.positions[-1][0] and self.x != self.positions[-1][1]:
+        self.positions.append((self.x, self.y))
+        self.circles.append(Point(self.x, self.y).buffer(self.radius))
+        self.update_score()
+        print(self.score)
 
         if intersection_left.is_empty and intersection_right.is_empty and intersection_top.is_empty and intersection_bottom.is_empty:
             return
@@ -169,3 +188,5 @@ class Robot:
                             self.y + np.sin(new[2][0]) * self.radius)
 
         self.line_angle = new[2][0]
+
+        #self.positions.append((self.x, self.y))

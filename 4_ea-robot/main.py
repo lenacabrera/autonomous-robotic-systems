@@ -5,6 +5,8 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from config import Configuration
+
+
 import evolution
 
 # Note, for use on MAC uncomment the following line
@@ -115,6 +117,12 @@ def init_walls_coordinates(env_width, env_height, wall_length):
 
     return walls
 
+def init_grid(square_size, width):
+    grid = np.zeros((int(width/square_size), int(width/square_size)))
+    return grid
+
+
+
 
 def initialize_pygame(c):
     pygame.init()
@@ -128,6 +136,18 @@ def initialize_pygame(c):
 
     return screen, timer_event, font
 
+def drawGrid(screen):
+    blockSize = 40  # Set the size of the grid block
+    for x in range(c.env_width):
+        for y in range(c.env_height):
+            # rect = pygame.Rect(x*blockSize, y*blockSize,
+            #                    blockSize, blockSize)
+            pygame.draw.rect(screen, (0, 0, 0), (x*blockSize, y*blockSize, blockSize, blockSize), 1)
+
+def drawPath(screen, robot, robot_color):
+    for position in robot.positions:
+        pygame.draw.circle(surface=screen, color=robot_color,
+                           center=(position[0], position[1]), radius=robot.radius)
 
 if __name__ == '__main__':
 
@@ -138,6 +158,15 @@ if __name__ == '__main__':
     screen, timer_event, font = initialize_pygame(c)
     robot = Robot(x=c.x, y=c.y, radius=c.radius, num_sensors=c.num_sensors, max_sensor_reach=c.max_sensor_reach)
     walls = init_walls_coordinates(c.env_width, c.env_height, c.wall_length)
+    grid = init_grid(50, c.env_width)
+
+    # rectangle_walls = shapely.geometry.box(0, 0, c.wall_length, c.wall_length).area
+    # print(rectangle_walls)
+
+    screen.fill((255, 255, 255))
+    # drawGrid(screen)
+    empty = pygame.Color(255, 255, 255, 0)
+    game_surf = pygame.surface.Surface((750, 750))
 
     # evolutionary algorithm
     while True:
@@ -197,24 +226,29 @@ if __name__ == '__main__':
                 sensor_d = robot.get_sensor_distance_values(walls)
 
                 # clear screen
+                #game_surf.fill(empty)
                 screen.fill((255, 255, 255))
+
+                # drawGrid(screen)
+                drawPath(screen, robot, c.robot_color)
 
                 # draw scene
                 draw_walls(screen, walls, c.wall_thickness, c.wall_color)
                 draw_robot(screen, robot, c.robot_color, sensor_d, font, draw_sensors=True)
 
                 # update display
+                # screen.blit(game_surf, (0, 0))
                 pygame.display.update()
 
-        n_generations, fitnesses = evolution.evolutionary_algorithm(n_individuals=c.n_individuals,
-                                                     n_iterations=c.n_iterations,
-                                                     benchmark_function=c.benchmark_function,
-                                                     frame_range=c.frame_range,
-                                                     n_best_percentage=c.n_best_percentage,
-                                                     crossover_percentage=c.crossover_percentage,
-                                                     mutation_percentage=c.mutation_percentage,
-                                                     termination_threshold=c.termination_threshold
-                                                     )
+        # n_generations, fitnesses = evolution.evolutionary_algorithm(n_individuals=c.n_individuals,
+        #                                              n_iterations=c.n_iterations,
+        #                                              benchmark_function=c.benchmark_function,
+        #                                              frame_range=c.frame_range,
+        #                                              n_best_percentage=c.n_best_percentage,
+        #                                              crossover_percentage=c.crossover_percentage,
+        #                                              mutation_percentage=c.mutation_percentage,
+        #                                              termination_threshold=c.termination_threshold
+        #                                              )
 
         # plot_avg_fitness(n_generations, fitnesses)
         # TODO plot max fitness
