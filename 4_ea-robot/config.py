@@ -23,6 +23,7 @@ class Configuration:
         self.num_sensors = 12
         self.max_sensor_reach = 2 * self.radius
         self.robot_color = (153, 204, 255)
+        self.delta_t = 0.1
 
         # evolutionary algorithm
         self.n_individuals = 100

@@ -104,7 +104,7 @@ class Robot:
         self.positions.append((self.x, self.y))
         self.circles.append(Point(self.x, self.y).buffer(self.radius))
         self.update_score()
-        print(self.score)
+        # print(self.score)
 
         if intersection_left.is_empty and intersection_right.is_empty and intersection_top.is_empty and intersection_bottom.is_empty:
             return
@@ -135,7 +135,10 @@ class Robot:
 
         return distance_values
 
-    def set_new_position(self, delta_t):
+    def set_new_position(self, delta_t, v_left, v_right):
+        self.v_wheel_l = v_left
+        self.v_wheel_r = v_right
+
         # for collision detection: save previous position
         self.x_prev = self.x
         self.y_prev = self.y

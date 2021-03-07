@@ -1,10 +1,13 @@
+import copy
 import random
 import numpy as np
-import benchmark_functions
+import fitness_function
+import neural_network
+
 
 class Population:
 
-    def __init__(self, n_individuals, b_func, n_sensors, hidden_dim):
+    def __init__(self, n_individuals, n_sensors, hidden_dim):
 
         self.individuals = self.build_population(n_individuals, n_sensors, hidden_dim)
         self.fitness = []
@@ -122,19 +125,32 @@ class Population:
     #
     #     return population
 
-    def evaluate_population(self, b_func):
+    def evaluate_population(self, robot, walls, hidden_dim, delta_t, wall_length):
         fitness = []
+
         for individual in self.individuals:
+            copy_robot = copy.deepcopy(robot)
+            ann = neural_network.ANN(copy_robot.get_sensor_distance_values(walls), individual,
+                                    hidden_dim, copy_robot.max_sensor_reach)
+
+            for steps in range(20):
+                v_left, v_right = ann.decode_genotype(copy_robot.get_sensor_distance_values(walls), individual)
+
+                copy_robot.set_new_position(delta_t, v_left, v_right)
+                copy_robot.robot_is_crossing_wall(walls)
+
+                copy_robot.update_sensors()
+
+            fitness.append(fitness_function.robot_fitness(robot, wall_length))
 
             # TODO put individual into ann
-
-            position = self.genotype_to_weights(individual)
+            # TODO robot object
+            # position = self.genotype_to_weights(individual)
             # print(position)
-            if b_func == 'rosenbrock':
-                fitness.append(benchmark_functions.rosenbrock(position))
-            if b_func == 'rastrigin':
-                fitness.append(benchmark_functions.rosenbrock(position))
+
         self.fitness = fitness
+
+
 
     def selection(self, n_best_percentage):
         # truncated rank-based

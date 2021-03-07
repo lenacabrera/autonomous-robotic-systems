@@ -31,19 +31,21 @@ class ANN:
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
 
-    def decode_genotype(self, sensor_distances):
+    def decode_genotype(self, sensor_distances, genotype):
         # Return velocities, decoded by neural network
+        weights_in_hid, weights_hid_out = self.genotype_to_weights(genotype)
 
         # input layer
-        inputs = np.asarray(sensor_distances + self.memory)
+        sensor_distances.extend(self.memory)
+        inputs = np.asarray(sensor_distances)
         # normalize inputs TODO really normalize?
         inputs = inputs/self.max_sensor_reach
 
         # hidden layer
-        self.memory = self.sigmoid(np.dot(self.weights_in_hid, inputs.T))
+        self.memory = self.sigmoid(np.dot(weights_in_hid, inputs.T))
 
         # output layer
-        outputs = self.sigmoid(np.dot(self.weights_hid_out, self.memory.T))
+        outputs = self.sigmoid(np.dot(weights_hid_out, self.memory.T))
         velocities = self.convert_outputs_to_velocities(outputs)
 
         return velocities

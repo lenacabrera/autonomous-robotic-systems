@@ -19,8 +19,8 @@ import shapely.geometry
 
 # - combine functions: score = max_i (e_s_i()) * e_d()
 
-def robot_fitness(robot):
-    total_area = shapely.geometry.box(0, 0, c.wall_length, c.wall_length).area
+def robot_fitness(robot, wall_length):
+    total_area = shapely.geometry.box(0, 0, wall_length, wall_length).area
     cleaned_area = robot.score
     return cleaned_area / total_area
 
