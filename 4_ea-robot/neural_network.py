@@ -21,8 +21,6 @@ class ANN:
 
         self.max_sensor_reach = max_sensor_reach
 
-    # def encode_genotype(self):
-
     def tanh(self, x):
         t = (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
         # dt = 1 - t ** 2
@@ -31,7 +29,7 @@ class ANN:
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
 
-    def decode_genotype(self, sensor_distances, genotype):
+    def decode_genotype(self, sensor_distances, genotype, v_max):
         # Return velocities, decoded by neural network
         weights_in_hid, weights_hid_out = self.genotype_to_weights(genotype)
 
@@ -39,24 +37,36 @@ class ANN:
         sensor_distances.extend(self.memory)
         inputs = np.asarray(sensor_distances)
         # normalize inputs TODO really normalize?
-        inputs = inputs/self.max_sensor_reach
+        # inputs = inputs/self.max_sensor_reach
 
         # hidden layer
-        self.memory = self.sigmoid(np.dot(weights_in_hid, inputs.T))
+        self.memory = self.tanh(np.dot(weights_in_hid, inputs.T))
+        # self.memory = self.sigmoid(np.dot(weights_in_hid, inputs.T))
 
         # output layer
-        outputs = self.sigmoid(np.dot(weights_hid_out, self.memory.T))
-        velocities = self.convert_outputs_to_velocities(outputs)
+        outputs = self.tanh(np.dot(weights_hid_out, self.memory.T))
+        # outputs = self.sigmoid(np.dot(weights_hid_out, self.memory.T))
+        velocities = self.convert_outputs_to_velocities(outputs, v_max)
 
         return velocities
 
-    def convert_outputs_to_velocities(self, outputs):
+    def convert_outputs_to_velocities(self, outputs, v_max):
         # TODO
-        v_wheel_l = (outputs[0] - 0.5) * 1000
-        v_wheel_r = (outputs[1] - 0.5) * 1000
+
+        # sigmoid
+        # v_wheel_l = (outputs[0] - 0.5) * 1000
+        # v_wheel_r = (outputs[1] - 0.5) * 1000
+
+        # tanh
+        # v_wheel_l = outputs[0] * 200
+        # v_wheel_r = outputs[1] * 200
+
+        v_wheel_l = outputs[0] * 10 * v_max
+        v_wheel_r = outputs[1] * 10 * v_max
+
+        # print(v_wheel_l, v_wheel_r)
 
         return (v_wheel_l, v_wheel_r)
-
 
     def genotype_to_weights(self, genotype, bin_enc_len=7, prefix_divisor=10000):
         """ Decoding genotype (binary encoding) to weights (floats) """

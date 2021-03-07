@@ -142,7 +142,7 @@ if __name__ == '__main__':
     game_surf = pygame.surface.Surface((750, 750))
 
     population = Population(c.n_individuals, c.num_sensors, c.hidden_dim)
-    population.evaluate_population(robot, walls, c.hidden_dim, c.delta_t, c.wall_length)
+    population.evaluate_population(robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max)
     termination_counter = 0
     n_generations = 0
     fitnesses = []
@@ -154,7 +154,7 @@ if __name__ == '__main__':
         population.replacement(selected)
         population.crossover_and_mutation(c.crossover_percentage, c.mutation_percentage, c.n_best_percentage)
 
-        population.evaluate_population(robot, walls, c.hidden_dim, c.delta_t, c.wall_length)
+        population.evaluate_population(robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max)
 
         index_best_individuum = population.fitness.index(max(population.fitness))
         best_genotype = population.individuals[index_best_individuum]
@@ -164,14 +164,14 @@ if __name__ == '__main__':
         ann = neural_network.ANN(copy_robot.get_sensor_distance_values(walls), best_genotype,
                                  c.hidden_dim, copy_robot.max_sensor_reach)
 
-        for steps in range(20):
+        for steps in range(c.path_steps):
             for event in pygame.event.get():
                 # for key / action
                 if event.type == pygame.QUIT:
                     # termination
                     sys.exit()
 
-                v_left, v_right = ann.decode_genotype(copy_robot.get_sensor_distance_values(walls), best_genotype)
+                v_left, v_right = ann.decode_genotype(copy_robot.get_sensor_distance_values(walls), best_genotype, c.v_max)
 
                 if event.type == timer_event:
                     copy_robot.set_new_position(c.delta_t, v_left, v_right)

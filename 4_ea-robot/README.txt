@@ -19,8 +19,11 @@ Use of program:
 
 
 TODO
-- crossover anpassen (position where to cut, randomly selected)
-- ANN 
-- Fitness function
-- Grid + dust (simulation)
-- different rooms
+- crossover anpassen (position where to cut, randomly selected) <- debug Lena
+- Fitness function <- punish collision
+- (Grid + dust (simulation))
+- different rooms <- Lena (e.g train in 2 rooms, test 2 rooms)
+
+- title generations in animation
+- plots <- Kathrin
+-  how to save animation of different generations without running simulation live (for video)

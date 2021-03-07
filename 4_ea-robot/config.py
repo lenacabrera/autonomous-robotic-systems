@@ -24,9 +24,10 @@ class Configuration:
         self.max_sensor_reach = 2 * self.radius
         self.robot_color = (153, 204, 255)
         self.delta_t = 0.1
+        self.path_steps = 20 #20
 
         # evolutionary algorithm
-        self.n_individuals = 100
+        self.n_individuals = 50 #100
         self.n_iterations = 100
         self.benchmark_function = 'rastrigin'  # rastrigin, rosenbrock
         self.frame_range = [-4, 4]
