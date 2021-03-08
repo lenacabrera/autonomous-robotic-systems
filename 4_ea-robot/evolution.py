@@ -7,28 +7,30 @@ import math
 import numpy as np
 from config import Configuration
 from population import Population
+import room
 
 
 def draw_walls(screen, walls, wall_thickness, wall_color):
-    # left
-    pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
-                     start_pos=walls['left'][0],
-                     end_pos=walls['left'][1])
 
-    # top
-    pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
-                     start_pos=walls['top'][0],
-                     end_pos=walls['top'][1])
-    # right
-    pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
-                     start_pos=walls['right'][0],
-                     end_pos=walls['right'][1])
+    for left_wall in walls["left"]:
+        pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
+                         start_pos=left_wall[0],
+                         end_pos=left_wall[1])
 
-    # bottom
-    pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
-                     start_pos=walls['bottom'][0],
-                     end_pos=walls['bottom'][1])
+    for top_wall in walls["top"]:
+        pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
+                         start_pos=top_wall[0],
+                         end_pos=top_wall[1])
 
+    for right_wall in walls["right"]:
+        pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
+                         start_pos=right_wall[0],
+                         end_pos=right_wall[1])
+
+    for bottom_wall in walls["bottom"]:
+        pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
+                         start_pos=bottom_wall[0],
+                         end_pos=bottom_wall[1])
 
 def draw_robot(screen, robot, robot_color, distance_values, font, draw_sensors=False):
     # body of robot
@@ -68,33 +70,20 @@ def draw_robot(screen, robot, robot_color, distance_values, font, draw_sensors=F
     screen.blit(textsurface, (robot.x + np.cos(robot.line_angle + 3 * math.pi / 2) * robot.radius / 2,
                               robot.y + np.sin(robot.line_angle + 3 * math.pi / 2) * robot.radius / 2))
 
+def drawPath(screen, robot, path_color):
+    for position in robot.positions:
+        pygame.draw.circle(surface=screen, color=path_color,
+                           center=(position[0], position[1]), radius=robot.radius)
 
-def init_walls_coordinates(env_width, env_height, wall_length):
-    # wall frame distance
-    dist_l_r = (env_width - wall_length) / 2  # distance to frame, left and right
-    dist_t_b = (env_height - wall_length) / 2  # distance to frame, top and bottom
+def draw_generation_info(generation, env_width, avg_fitness):
 
-    left_start = (dist_l_r, dist_t_b)
-    left_end = (dist_l_r, dist_t_b + wall_length)
-
-    top_start = (dist_l_r, dist_t_b)
-    top_end = (dist_l_r + wall_length, dist_t_b)
-
-    right_start = (dist_l_r + wall_length, dist_t_b)
-    right_end = (dist_l_r + wall_length, dist_t_b + wall_length)
-
-    bottom_start = (dist_l_r, dist_t_b + wall_length)
-    bottom_end = (dist_l_r + wall_length, dist_t_b + wall_length)
-
-    walls = {
-        'left': [left_start, left_end],
-        'top': [top_start, top_end],
-        'right': [right_start, right_end],
-        'bottom': [bottom_start, bottom_end],
-    }
-
-    return walls
-
+    generation_str = "Generation " + str(generation)
+    fitness_str = "Fitness: " + str(avg_fitness)
+    generation_font = pygame.font.SysFont('Arial', 22)
+    fitness_font = pygame.font.SysFont('Arial', 18)
+    screen.blit(generation_font.render(generation_str, False, (0, 0, 0)), (20, 10))  # position in corner
+    screen.blit(fitness_font.render(fitness_str, False, (0, 0, 0)), (20, 40))  # position in corner
+    # screen.blit(textsurface, (env_width/2-50, 20))  # position in center
 
 def initialize_pygame(c):
     pygame.init()
@@ -105,21 +94,9 @@ def initialize_pygame(c):
     timer_event = pygame.USEREVENT + 1
     time = 250  # TODO: fine-tuning
     pygame.time.set_timer(timer_event, time)
+    # game_surf = pygame.surface.Surface((c.env_width, c.env_height))
 
     return screen, timer_event, font
-
-def drawGrid(screen):
-    blockSize = 40  # Set the size of the grid block
-    for x in range(c.env_width):
-        for y in range(c.env_height):
-            # rect = pygame.Rect(x*blockSize, y*blockSize,
-            #                    blockSize, blockSize)
-            pygame.draw.rect(screen, (0, 0, 0), (x*blockSize, y*blockSize, blockSize, blockSize), 1)
-
-def drawPath(screen, robot, robot_color):
-    for position in robot.positions:
-        pygame.draw.circle(surface=screen, color=robot_color,
-                           center=(position[0], position[1]), radius=robot.radius)
 
 
 if __name__ == '__main__':
@@ -130,19 +107,10 @@ if __name__ == '__main__':
     # initializations
     screen, timer_event, font = initialize_pygame(c)
     robot = Robot(x=c.x, y=c.y, radius=c.radius, num_sensors=c.num_sensors, max_sensor_reach=c.max_sensor_reach)
-    walls = init_walls_coordinates(c.env_width, c.env_height, c.wall_length)
-    # grid = init_grid(50, c.env_width)
-
-    # rectangle_walls = shapely.geometry.box(0, 0, c.wall_length, c.wall_length).area
-    # print(rectangle_walls)
-
-    screen.fill((255, 255, 255))
-    # drawGrid(screen)
-    empty = pygame.Color(255, 255, 255, 0)
-    game_surf = pygame.surface.Surface((750, 750))
+    walls = room.init_walls_coordinates(c.env_width, c.env_height, c.wall_length, c.room_shape)
 
     population = Population(c.n_individuals, c.num_sensors, c.hidden_dim)
-    population.evaluate_population(robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max)
+    population.evaluate_population(robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max, c.termination_threshold)
     termination_counter = 0
     n_generations = 0
     fitnesses = []
@@ -153,16 +121,15 @@ if __name__ == '__main__':
         selected = population.selection(c.n_best_percentage)
         population.replacement(selected)
         population.crossover_and_mutation(c.crossover_percentage, c.mutation_percentage, c.n_best_percentage)
+        population.evaluate_population(robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max, c.termination_threshold)
 
-        population.evaluate_population(robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max)
 
+        # SIMULATION -> show best performing individual of current generation
         index_best_individuum = population.fitness.index(max(population.fitness))
         best_genotype = population.individuals[index_best_individuum]
-
-        # new ANN with best performing individual
         copy_robot = copy.deepcopy(robot)
-        ann = neural_network.ANN(copy_robot.get_sensor_distance_values(walls), best_genotype,
-                                 c.hidden_dim, copy_robot.max_sensor_reach)
+        ann = neural_network.ANN(copy_robot.get_sensor_distance_values(walls), best_genotype, c.hidden_dim,
+                                 copy_robot.max_sensor_reach)
 
         for steps in range(c.path_steps):
             for event in pygame.event.get():
@@ -186,7 +153,7 @@ if __name__ == '__main__':
                     screen.fill((255, 255, 255))
 
                     #drawGrid(screen)
-                    drawPath(screen, copy_robot, c.robot_color)
+                    drawPath(screen, copy_robot, c.path_color)
 
                     # draw scene
                     draw_walls(screen, walls, c.wall_thickness, c.wall_color)
@@ -200,12 +167,14 @@ if __name__ == '__main__':
                     # screen.blit(game_surf, (0, 0))
                     pygame.display.update()
 
+
+
         # TERMINATION
         # evaluate fitness of current generation
         if n_generations == 0:
             old_avg_fitness = sum(population.fitness) / len(population.fitness)
         new_avg_fitness = sum(population.fitness) / len(population.fitness)
-        if new_avg_fitness >= old_avg_fitness:
+        if new_avg_fitness <= old_avg_fitness:
             # fitness stagnates or gets worse
             termination_counter += 1
         else:
@@ -223,5 +192,31 @@ if __name__ == '__main__':
             print("Average Fitness: ", old_avg_fitness)
             break
 
+
+        # print(population.fitness)
+        # # evaluate fitness of current generation
+        # if n_generations == 0:
+        #     old_best_fitness = max(population.fitness)
+        # new_best_fitness = max(population.fitness)
+        # if new_best_fitness <= old_best_fitness:
+        #     # fitness stagnates or gets worse
+        #     termination_counter += 1
+        # else:
+        #     termination_counter = 0
+        # print("\nold_best_fitness   new_best_fitness")
+        # print(old_best_fitness, new_best_fitness)
+        # old_avg_fitness = new_best_fitness
+        # fitnesses.append(old_avg_fitness)
+        # if termination_counter >= c.termination_threshold or n_generations == c.n_iterations:
+        #     # terminate
+        #     if termination_counter >= c.termination_threshold:
+        #         print("Terminate - because fitness stagnates")
+        #     if n_generations == c.n_iterations:
+        #         print("Terminate - because maximum number of generations reached")
+        #     print("Average Fitness: ", old_avg_fitness)
+        #     break
+
         n_generations += 1
+        draw_generation_info(n_generations, c.env_width, max(population.fitness))
+        pygame.display.update()
         print("Generation: ", n_generations)

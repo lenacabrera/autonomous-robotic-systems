@@ -1,5 +1,5 @@
 import numpy as np
-import math
+import random
 
 class ANN:
 
@@ -17,6 +17,7 @@ class ANN:
         self.weights_in_hid, self.weights_hid_out = self.genotype_to_weights(genotype)
 
         # recurrent nodes
+        # self.memory = [random.randint(1,max_sensor_reach) for i in range(hidden_dim)]
         self.memory = [max_sensor_reach for i in range(hidden_dim)]
 
         self.max_sensor_reach = max_sensor_reach
@@ -24,6 +25,7 @@ class ANN:
     def tanh(self, x):
         t = (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
         # dt = 1 - t ** 2
+        # dt = 1 - 2 / (math.exp(2 * x) + 1)
         return t
 
     def sigmoid(self, x):
@@ -36,12 +38,11 @@ class ANN:
         # input layer
         sensor_distances.extend(self.memory)
         inputs = np.asarray(sensor_distances)
-        # normalize inputs TODO really normalize?
-        # inputs = inputs/self.max_sensor_reach
+        # TODO normalize?
+        inputs = inputs / self.max_sensor_reach
 
         # hidden layer
         self.memory = self.tanh(np.dot(weights_in_hid, inputs.T))
-        # self.memory = self.sigmoid(np.dot(weights_in_hid, inputs.T))
 
         # output layer
         outputs = self.tanh(np.dot(weights_hid_out, self.memory.T))
@@ -52,6 +53,8 @@ class ANN:
 
     def convert_outputs_to_velocities(self, outputs, v_max):
         # TODO
+        # print(outputs)
+        # print(1/(outputs[0] * 100))
 
         # sigmoid
         # v_wheel_l = (outputs[0] - 0.5) * 1000
@@ -61,11 +64,17 @@ class ANN:
         # v_wheel_l = outputs[0] * 200
         # v_wheel_r = outputs[1] * 200
 
-        v_wheel_l = outputs[0] * 10 * v_max
-        v_wheel_r = outputs[1] * 10 * v_max
+        # latest version:
+        v_wheel_l = outputs[0] * 100 * v_max
+        v_wheel_r = outputs[1] * 100 * v_max
+
+        # v_wheel_l = outputs[0] * 10 * v_max
+        # v_wheel_r = outputs[1] * 10 * v_max
+
+        # v_wheel_l = outputs[0] * 1 * v_max
+        # v_wheel_r = outputs[1] * 1 * v_max
 
         # print(v_wheel_l, v_wheel_r)
-
         return (v_wheel_l, v_wheel_r)
 
     def genotype_to_weights(self, genotype, bin_enc_len=7, prefix_divisor=10000):
@@ -85,6 +94,7 @@ class ANN:
                 weight_suffix_int = (weight_suffix_int << 1) | bit
 
             # build weight from prefix and suffix
+            # prefix_divisor = 100
             weight = weight_suffix_int / prefix_divisor
 
             weights[i_weight] = weight

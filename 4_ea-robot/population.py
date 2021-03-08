@@ -70,22 +70,31 @@ class Population:
 
         return population
 
-    def evaluate_population(self, robot, walls, hidden_dim, delta_t, wall_length, path_steps, v_max):
+    def evaluate_population(self, robot, walls, hidden_dim, delta_t, wall_length, path_steps, v_max, termination_threshold):
         fitness = []
 
-        for individual in self.individuals:
+        for i, individual in enumerate(self.individuals):
+            # print("Individual %s" % i)
             copy_robot = copy.deepcopy(robot)
             ann = neural_network.ANN(copy_robot.get_sensor_distance_values(walls), individual,
                                     hidden_dim, copy_robot.max_sensor_reach)
+            termination_counter = 0
 
-            for steps in range(path_steps):
-                # print(steps)
+            for step in range(path_steps):
                 v_left, v_right = ann.decode_genotype(copy_robot.get_sensor_distance_values(walls), individual, v_max)
-
                 copy_robot.set_new_position(delta_t, v_left, v_right)
                 copy_robot.robot_is_crossing_wall(walls)
-
                 copy_robot.update_sensors()
+
+                if step == 0:
+                    old_fitness = fitness_function.robot_fitness(copy_robot, wall_length)
+                current_fitness = fitness_function.robot_fitness(copy_robot, wall_length)
+                if current_fitness <= old_fitness:
+                    termination_counter += 1
+                old_fitness = current_fitness
+                if termination_counter == termination_threshold:
+                    print("Individual's fitness stagnates")
+                    break
 
             fitness.append(fitness_function.robot_fitness(copy_robot, wall_length))
 
