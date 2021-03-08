@@ -22,9 +22,17 @@ import shapely.geometry
 def robot_fitness(robot, wall_length):
     total_area = shapely.geometry.box(0, 0, wall_length, wall_length).area
     cleaned_area = robot.score
-    return cleaned_area / total_area
 
-# evtl.: multiply with constants
+    sensor_ev = robot.sensor_score
+    return cleaned_area/total_area
+
+    #if sensor_ev == 0:
+    #    return 0
+
+    #else:
+    #    return cleaned_area * 1 / sensor_ev #/ total_area
+
+    # evtl.: multiply with constants
 
 # def robot_distance_validator():
     # prefer distances close to walls

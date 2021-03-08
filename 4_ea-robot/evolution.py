@@ -192,6 +192,10 @@ if __name__ == '__main__':
                     draw_walls(screen, walls, c.wall_thickness, c.wall_color)
                     draw_robot(screen, copy_robot, c.robot_color, sensor_d, font, draw_sensors=True)
 
+                    text = "Generation " + str(n_generations)
+                    textsurface = font.render(text, False, (0, 0, 0))
+                    screen.blit(textsurface, (100, 50))
+
                     # update display
                     # screen.blit(game_surf, (0, 0))
                     pygame.display.update()

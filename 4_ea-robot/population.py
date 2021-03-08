@@ -95,7 +95,7 @@ class Population:
         # truncated rank-based
         n_best = int(len(self.individuals) * n_best_percentage)
         zipped = zip(self.fitness, self.individuals)
-        zipped_sorted = sorted(zipped, key=lambda x: x[0], reverse=False)
+        zipped_sorted = sorted(zipped, key=lambda x: x[0], reverse=True)
         return zipped_sorted[0:n_best]
 
     def replacement(self, selected):
