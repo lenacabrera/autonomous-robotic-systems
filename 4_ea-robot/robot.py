@@ -28,7 +28,7 @@ class Robot:
         self.positions = [(self.x, self.y)]
         self.circles = [Point(self.x, self.y).buffer(self.radius), Point(self.x, self.y).buffer(self.radius)]
 
-        self.sensor_score = 1
+        self.sensor_score = 10
         self.score = 0 #self.circles[0].area
 
     def init_sensors(self):
@@ -126,17 +126,22 @@ class Robot:
                     if intersection.is_empty:
                         # if no intersection -> maximum sensor reach
                         sensor_distances.append(self.max_sensor_reach)
-                        self.sensor_score *= self.max_sensor_reach
+                        #self.sensor_score *= self.max_sensor_reach/self.max_sensor_reach
                     else:
                         # if intersection
                         a = abs(self.x - intersection.x)
                         b = abs(self.y - intersection.y)
                         c = math.sqrt(math.pow(a, 2) + math.pow(b, 2)) - self.radius
                         sensor_distances.append(c)
-                        self.sensor_score *= c
+                        #self.sensor_score *= c/self.max_sensor_reach
+                        #print("c", c)
+                        if int(c) == 0:
+                            #print("score is zero")
+                            self.sensor_score = 0
 
             distance_values.append(min(sensor_distances))
 
+        #print(self.sensor_score)
         return distance_values
 
     def set_new_position(self, delta_t, v_left, v_right):

@@ -17,8 +17,8 @@ class ANN:
         self.weights_in_hid, self.weights_hid_out = self.genotype_to_weights(genotype)
 
         # recurrent nodes
-        # self.memory = [random.randint(1,max_sensor_reach) for i in range(hidden_dim)]
-        self.memory = [max_sensor_reach for i in range(hidden_dim)]
+        self.memory = [random.randint(1,max_sensor_reach) for i in range(hidden_dim)]
+        # self.memory = [max_sensor_reach for i in range(hidden_dim)]
 
         self.max_sensor_reach = max_sensor_reach
 
@@ -65,8 +65,8 @@ class ANN:
         # v_wheel_r = outputs[1] * 200
 
         # latest version:
-        v_wheel_l = outputs[0] * 100 * v_max
-        v_wheel_r = outputs[1] * 100 * v_max
+        v_wheel_l = outputs[0] * 100 * v_max * 3
+        v_wheel_r = outputs[1] * 100 * v_max * 3
 
         # v_wheel_l = outputs[0] * 10 * v_max
         # v_wheel_r = outputs[1] * 10 * v_max

@@ -25,17 +25,17 @@ class Configuration:
         self.max_sensor_reach = 2 * self.radius
         self.robot_color = (153, 204, 255)
         self.delta_t = 0.1
-        self.path_steps = 50  #20
+        self.path_steps = 80  #20
         self.path_color = (204, 229, 255)
         self.position_initialization = "center"  # center, corner
 
         # evolutionary algorithm
-        self.n_individuals = 10
+        self.n_individuals = 30
         self.n_iterations = 100
-        self.n_best_percentage = 0.2
+        self.n_best_percentage = 0.3
         self.crossover_percentage = 0.3
         self.mutation_percentage = 0.1
-        self.termination_threshold = 10
+        self.termination_threshold = 20
 
         # ANN
         self.hidden_dim = 4

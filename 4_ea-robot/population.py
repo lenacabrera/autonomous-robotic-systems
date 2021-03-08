@@ -86,19 +86,20 @@ class Population:
                 copy_robot.robot_is_crossing_wall(walls)
                 copy_robot.update_sensors()
 
-                if step == 0:
-                    old_fitness = fitness_function.robot_fitness(copy_robot, wall_length)
-                current_fitness = fitness_function.robot_fitness(copy_robot, wall_length)
-                if current_fitness <= old_fitness:
-                    termination_counter += 1
-                old_fitness = current_fitness
-                if termination_counter == termination_threshold:
-                    print("Individual's fitness stagnates")
-                    break
+                # if step == 0:
+                #     old_fitness = fitness_function.robot_fitness(copy_robot, wall_length)
+                # current_fitness = fitness_function.robot_fitness(copy_robot, wall_length)
+                # if current_fitness <= old_fitness:
+                #     termination_counter += 1
+                # old_fitness = current_fitness
+                # if termination_counter == termination_threshold:
+                #     print("Individual's fitness stagnates")
+                #     break
 
             fitness.append(fitness_function.robot_fitness(copy_robot, wall_length))
 
         self.fitness = fitness
+        return fitness
 
     def selection(self, n_best_percentage):
         # truncated rank-based
