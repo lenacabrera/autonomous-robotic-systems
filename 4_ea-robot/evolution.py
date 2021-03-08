@@ -143,7 +143,7 @@ def plot_diversity(n_generation, diversity_measures):
     plt.ylabel("Diversity")
     plt.title("Diversity of Evolutionary Algorithm")
     # plt.legend()
-    plt.show()
+    # plt.show()
 
 
 if __name__ == '__main__':
@@ -305,3 +305,68 @@ if __name__ == '__main__':
 
     plot_avg_and_max_fitness(n_generations, avg_fitnesses, max_fitnesses)
     plot_diversity(n_generations, diversity_measures)
+
+
+
+    ##### Test best individual in different room
+    # sys.exit()
+    # pygame.display.quit()
+    # pygam
+    # screen, timer_event, font = initialize_pygame(c)
+    test_room = "rectangle"
+    walls = room.init_walls_coordinates(c.env_width, c.env_height, c.wall_length, test_room)
+
+    while True:
+        # clock = pygame.time.Clock()
+        for event in pygame.event.get():
+            # pygame.event.pump()
+            # for key / action
+            # if event.type == pygame.QUIT:
+            #     # termination
+            #     sys.exit()
+
+            if count == 0:
+                for steps in range(c.path_steps):
+                    print("steps ", steps)
+
+                    # if event.type == timer_event:
+                    v_left, v_right = ann.decode_genotype(copy_robot.get_sensor_distance_values(walls), best_genotype,
+                                                          c.v_max)
+                    copy_robot.set_new_position(c.delta_t, v_left, v_right)
+                    copy_robot.robot_is_crossing_wall(walls)
+
+                    copy_robot.update_sensors()
+
+                    sensor_d = copy_robot.get_sensor_distance_values(walls)
+
+                    # clear screen
+                    # game_surf.fill(empty)
+                    screen.fill((255, 255, 255))
+
+                    # drawGrid(screen)
+                    drawPath(screen, copy_robot, c.path_color)
+
+                    # draw scene
+                    draw_walls(screen, walls, c.wall_thickness, c.wall_color)
+                    draw_robot(screen, copy_robot, c.robot_color, sensor_d, font, draw_sensors=True)
+
+                    text = "Generation " + str(n_generations)
+                    textsurface = font.render(text, False, (0, 0, 0))
+                    screen.blit(textsurface, (100, 50))
+
+                    # text = "Step " + str(steps)
+                    # textsurface = font.render(text, False, (0, 0, 0))
+                    # screen.blit(textsurface, (200, 50))
+
+                    # update display
+                    # screen.blit(game_surf, (0, 0))
+                    pygame.display.update()
+                    clock.tick(60)
+
+                    # if count == steps:
+                    #     break
+            else:
+                break
+
+            count += 1
+            print(count)

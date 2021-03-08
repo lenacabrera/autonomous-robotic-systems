@@ -88,7 +88,7 @@ class ANN:
         # v_wheel_l = outputs[0] * 1 * v_max
         # v_wheel_r = outputs[1] * 1 * v_max
 
-        print(v_wheel_l, v_wheel_r)
+        # print(v_wheel_l, v_wheel_r)
         return (v_wheel_l, v_wheel_r)
 
     def genotype_to_weights(self, genotype, bin_enc_len=7, prefix_divisor=10000):
