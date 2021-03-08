@@ -13,6 +13,7 @@ class Configuration:
         self.wall_length = 600
         self.wall_thickness = 6
         self.wall_color = (204, 0, 102)
+        self.room_shape = 'square'  # square, rectangle, rectangle_double, trapezoid, trapezoid_double
 
         # robot
         self.x = self.env_width / 2
@@ -24,20 +25,61 @@ class Configuration:
         self.max_sensor_reach = 2 * self.radius
         self.robot_color = (153, 204, 255)
         self.delta_t = 0.1
-        self.path_steps = 20 #20
+        self.path_steps = 50  #20
+        self.path_color = (204, 229, 255)
+        self.position_initialization = "center"  # center, corner
 
         # evolutionary algorithm
-        self.n_individuals = 50 #100
+        self.n_individuals = 10
         self.n_iterations = 100
-        self.benchmark_function = 'rastrigin'  # rastrigin, rosenbrock
-        self.frame_range = [-4, 4]
         self.n_best_percentage = 0.2
-        self.crossover_percentage = 0.6
+        self.crossover_percentage = 0.3
         self.mutation_percentage = 0.1
-        self.termination_threshold = 5
+        self.termination_threshold = 10
 
         # ANN
         self.hidden_dim = 4
 
-        # debugging
-        self.steering = "keyboard"  # keyboard, autonomous
+        # DON'T CHANGE ANYTHING BELOW
+        # position initialization for different rooms
+        if self.room_shape == "square":
+            if self.position_initialization == "center":
+                # square - center
+                self.x = self.env_width / 2
+                self.y = self.env_height / 2
+            elif self.position_initialization == "corner":
+                # square - corner
+                self.x = self.env_width - self.radius
+                self.y = self.env_height - self.radius
+
+        if self.room_shape == "rectangle":
+            if self.position_initialization == "center":
+                self.x = self.env_width / 2
+                self.y = self.env_height / 2
+            elif self.position_initialization == "corner":
+                self.x = self.env_width * 0.8 - (self.env_width - self.wall_length)/2 - self.radius
+                self.y = (self.env_height - self.wall_length)/2 + self.radius
+
+        if self.room_shape == "rectangle_double":
+            if self.position_initialization == "center":
+                self.x = self.env_width / 2 - 150 - self.radius
+                self.y = self.env_height / 2
+            elif self.position_initialization == "corner":
+                self.x = self.env_width * 0.8 - (self.env_width - self.wall_length)/2 - self.radius
+                self.y = (self.env_height - self.wall_length)/2 + self.radius
+
+        if self.room_shape == "trapezoid":
+            if self.position_initialization == "center":
+                self.x = self.env_width / 2
+                self.y = self.env_height / 2
+            elif self.position_initialization == "corner":
+                self.x = self.env_width - (self.env_width - self.wall_length)/2 - self.radius
+                self.y = self.env_height * 0.8 - (self.env_height - self.wall_length)/2
+
+        if self.room_shape == "trapezoid_double":
+            if self.position_initialization == "center":
+                self.x = self.env_width / 2 - 150 - self.radius
+                self.y = self.env_height / 2
+            elif self.position_initialization == "corner":
+                self.x = self.env_width - (self.env_width - self.wall_length) / 2 - self.radius
+                self.y = self.env_height * 0.8 - (self.env_height - self.wall_length) / 2

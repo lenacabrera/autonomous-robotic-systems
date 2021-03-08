@@ -24,6 +24,10 @@ TODO
 - (Grid + dust (simulation))
 - different rooms <- Lena (e.g train in 2 rooms, test 2 rooms)
 
+OPEN ISSUES
+- fitness function and room does not yet work
+- set v_max velocities is not yet working properly
+
 - title generations in animation
 - plots <- Kathrin
 -  how to save animation of different generations without running simulation live (for video)

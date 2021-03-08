@@ -88,22 +88,39 @@ def draw_robot(screen, robot, robot_color, distance_values, font, draw_sensors=F
                               robot.y + np.sin(robot.line_angle + 3 * math.pi / 2) * robot.radius / 2))
 
 
-def init_walls_coordinates(env_width, env_height, wall_length):
+def init_walls_coordinates(env_width, env_height, wall_length, room_shape):
+
     # wall frame distance
     dist_l_r = (env_width - wall_length) / 2  # distance to frame, left and right
     dist_t_b = (env_height - wall_length) / 2  # distance to frame, top and bottom
 
-    left_start = (dist_l_r, dist_t_b)
-    left_end = (dist_l_r, dist_t_b + wall_length)
+    if room_shape == "square":
 
-    top_start = (dist_l_r, dist_t_b)
-    top_end = (dist_l_r + wall_length, dist_t_b)
+        left_start = (dist_l_r, dist_t_b)
+        left_end = (dist_l_r, dist_t_b + wall_length)
 
-    right_start = (dist_l_r + wall_length, dist_t_b)
-    right_end = (dist_l_r + wall_length, dist_t_b + wall_length)
+        top_start = (dist_l_r, dist_t_b)
+        top_end = (dist_l_r + wall_length, dist_t_b)
 
-    bottom_start = (dist_l_r, dist_t_b + wall_length)
-    bottom_end = (dist_l_r + wall_length, dist_t_b + wall_length)
+        right_start = (dist_l_r + wall_length, dist_t_b)
+        right_end = (dist_l_r + wall_length, dist_t_b + wall_length)
+
+        bottom_start = (dist_l_r, dist_t_b + wall_length)
+        bottom_end = (dist_l_r + wall_length, dist_t_b + wall_length)
+
+    elif room_shape == "trapezoid":
+
+        left_start = (dist_l_r, dist_t_b)  # top
+        left_end = (dist_l_r, dist_t_b + wall_length)  # bottom
+
+        right_start = (dist_l_r + wall_length, dist_t_b + wall_length * 0.1)  # top
+        right_end = (dist_l_r + wall_length, dist_t_b + wall_length - wall_length * 0.1)  # bottom
+
+        top_start = left_start
+        top_end = right_start
+
+        bottom_start = left_end
+        bottom_end = right_end
 
     walls = {
         'left': [left_start, left_end],
@@ -113,6 +130,32 @@ def init_walls_coordinates(env_width, env_height, wall_length):
     }
 
     return walls
+
+# def init_walls_coordinates(env_width, env_height, wall_length):
+#     # wall frame distance
+#     dist_l_r = (env_width - wall_length) / 2  # distance to frame, left and right
+#     dist_t_b = (env_height - wall_length) / 2  # distance to frame, top and bottom
+#
+#     left_start = (dist_l_r, dist_t_b)
+#     left_end = (dist_l_r, dist_t_b + wall_length)
+#
+#     top_start = (dist_l_r, dist_t_b)
+#     top_end = (dist_l_r + wall_length, dist_t_b)
+#
+#     right_start = (dist_l_r + wall_length, dist_t_b)
+#     right_end = (dist_l_r + wall_length, dist_t_b + wall_length)
+#
+#     bottom_start = (dist_l_r, dist_t_b + wall_length)
+#     bottom_end = (dist_l_r + wall_length, dist_t_b + wall_length)
+#
+#     walls = {
+#         'left': [left_start, left_end],
+#         'top': [top_start, top_end],
+#         'right': [right_start, right_end],
+#         'bottom': [bottom_start, bottom_end],
+#     }
+#
+#     return walls
 
 
 def initialize_pygame(c):
