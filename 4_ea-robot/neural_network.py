@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import math
 
 class ANN:
 
@@ -7,7 +8,7 @@ class ANN:
 
     def __init__(self, sensor_distances, genotype, hidden_dim, max_sensor_reach):
         # seeding for random number generation
-        np.random.seed(1)
+        # np.random.seed(1)
 
         self.input_dim = len(sensor_distances) + hidden_dim  # add hidden nodes as memory (recurrent connection)
         self.hidden_dim = hidden_dim
@@ -65,8 +66,21 @@ class ANN:
         # v_wheel_r = outputs[1] * 200
 
         # latest version:
-        v_wheel_l = outputs[0] * 100 * v_max * 3
-        v_wheel_r = outputs[1] * 100 * v_max * 3
+        # print(abs(math.log(outputs[0] * 100)), outputs[0]*100)
+        # v_wheel_l = outputs[0] * 100 * v_max * 3
+        # v_wheel_r = outputs[1] * 100 * v_max * 3
+        #
+        # log0 = abs(math.log(outputs[0] * 100))
+        # log1 = abs(math.log(outputs[1] * 100))
+        #
+        # v_min = 1
+        #
+        # norm0 = (log0 - v_min) / v_max - v_min
+        # norm1 = (log1 - v_min) / v_max - v_min
+        # print(norm0, norm1)
+
+        v_wheel_l = abs((1 - outputs[0] * 1000) * 10)
+        v_wheel_r = abs((1 - outputs[1] * 1000) * 10)
 
         # v_wheel_l = outputs[0] * 10 * v_max
         # v_wheel_r = outputs[1] * 10 * v_max
@@ -74,7 +88,7 @@ class ANN:
         # v_wheel_l = outputs[0] * 1 * v_max
         # v_wheel_r = outputs[1] * 1 * v_max
 
-        # print(v_wheel_l, v_wheel_r)
+        print(v_wheel_l, v_wheel_r)
         return (v_wheel_l, v_wheel_r)
 
     def genotype_to_weights(self, genotype, bin_enc_len=7, prefix_divisor=10000):

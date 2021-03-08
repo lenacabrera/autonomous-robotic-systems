@@ -8,7 +8,8 @@ import numpy as np
 from config import Configuration
 from population import Population
 import room
-
+from scipy.spatial import distance
+import matplotlib.pyplot as plt
 
 def draw_walls(screen, walls, wall_thickness, wall_color):
 
@@ -98,6 +99,52 @@ def initialize_pygame(c):
 
     return screen, timer_event, font
 
+def measure_diversity(population):
+
+    unique_individuals_tuple = list(set([tuple(g) for g in population.individuals]))
+    unique_individuals = [list(t) for t in unique_individuals_tuple]
+    print("len(unique_individuals) ", len(unique_individuals))
+
+    distances = []
+    for idx_individual, individual in enumerate(unique_individuals):
+        for other_individual in unique_individuals[idx_individual:]:
+            distances.append(distance.hamming(individual, other_individual))
+
+    max_distance = max(distances)
+    print("diversity distances", distances)
+
+    return max_distance
+
+def plot_avg_and_max_fitness(n_generation, avg_fitnesses, max_fitnesses):
+
+        generation = list(range(n_generation))
+        # avg_fitnesses.pop(0)
+        # avg_fitnesses.pop(0)
+
+        fig, ax = plt.subplots()
+        ax.plot(generation, avg_fitnesses, marker='.', label="Average")
+        ax.plot(generation, max_fitnesses, marker='>', label="Max")
+        plt.xlabel("Generation")
+        plt.ylabel("Fitness")
+        plt.title("Performance of Evolutionary Algorithm")
+        plt.legend()
+        # plt.show()
+
+
+def plot_diversity(n_generation, diversity_measures):
+
+    generation = list(range(n_generation))
+    # avg_fitnesses.pop(0)
+    # avg_fitnesses.pop(0)
+
+    fig, ax = plt.subplots()
+    ax.plot(generation, diversity_measures, marker='.')
+    plt.xlabel("Generation")
+    plt.ylabel("Diversity")
+    plt.title("Diversity of Evolutionary Algorithm")
+    # plt.legend()
+    plt.show()
+
 
 if __name__ == '__main__':
 
@@ -115,7 +162,9 @@ if __name__ == '__main__':
     print(f)
     termination_counter = 0
     n_generations = 0
-    fitnesses = []
+    avg_fitnesses = []
+    max_fitnesses = []
+    diversity_measures = []
 
     while True:
 
@@ -126,8 +175,12 @@ if __name__ == '__main__':
         f = population.evaluate_population(robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max, c.termination_threshold)
         print(f)
 
+        diversity_measures.append(measure_diversity(population))
+
         # SIMULATION -> show best performing individual of current generation
-        index_best_individuum = population.fitness.index(max(population.fitness))
+        max_fitness = max(population.fitness)
+        max_fitnesses.append(max_fitness)
+        index_best_individuum = population.fitness.index(max_fitness)
         print("fitness_best", max(population.fitness))
         best_genotype = population.individuals[index_best_individuum]
         copy_robot = copy.deepcopy(robot)
@@ -196,9 +249,6 @@ if __name__ == '__main__':
         print(population.fitness)
 
 
-
-
-
         # TERMINATION
         # evaluate fitness of current generation
         if n_generations == 0:
@@ -212,7 +262,7 @@ if __name__ == '__main__':
         # print("\nold_avg_fitness   new_avg_fitness")
         # print(old_avg_fitness, new_avg_fitness)
         old_avg_fitness = new_avg_fitness
-        fitnesses.append(old_avg_fitness)
+        avg_fitnesses.append(old_avg_fitness)
         if termination_counter >= c.termination_threshold or n_generations == c.n_iterations:
             # terminate
             if termination_counter >= c.termination_threshold:
@@ -235,8 +285,8 @@ if __name__ == '__main__':
         #     termination_counter = 0
         print("\nold_best_fitness   new_best_fitness")
         print(old_best_fitness, new_best_fitness)
-        old_avg_fitness = new_best_fitness
-        fitnesses.append(old_avg_fitness)
+        old_best_fitness = new_best_fitness
+        # fitnesses.append(old_avg_fitness)
         # if termination_counter >= c.termination_threshold or n_generations == c.n_iterations:
         #     # terminate
         #     if termination_counter >= c.termination_threshold:
@@ -250,3 +300,8 @@ if __name__ == '__main__':
         # draw_generation_info(n_generations, c.env_width, max(population.fitness))
         # pygame.display.update()
         print("Generation: ", n_generations)
+        if n_generations == 10:
+            break
+
+    plot_avg_and_max_fitness(n_generations, avg_fitnesses, max_fitnesses)
+    plot_diversity(n_generations, diversity_measures)
