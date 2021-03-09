@@ -24,7 +24,7 @@ def robot_fitness(robot, wall_length):
     cleaned_area = robot.score
 
     sensor_ev = robot.sensor_score
-    return  cleaned_area #/total_area
+    return  cleaned_area /total_area
 
     # if sensor_ev == 0:
     #     return 0

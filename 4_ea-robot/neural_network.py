@@ -4,18 +4,11 @@ import math
 
 class ANN:
 
-    # Neurocontroller TODO add bias?
-
     def __init__(self, sensor_distances, genotype, hidden_dim, max_sensor_reach):
-        # seeding for random number generation
-        # np.random.seed(1)
 
         self.input_dim = len(sensor_distances) + hidden_dim  # add hidden nodes as memory (recurrent connection)
         self.hidden_dim = hidden_dim
         self.output_dim = 2  # left and right wheel
-
-        # weights
-        self.weights_in_hid, self.weights_hid_out = self.genotype_to_weights(genotype)
 
         # recurrent nodes
         self.memory = [random.randint(1,max_sensor_reach) for i in range(hidden_dim)]
@@ -25,8 +18,6 @@ class ANN:
 
     def tanh(self, x):
         t = (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
-        # dt = 1 - t ** 2
-        # dt = 1 - 2 / (math.exp(2 * x) + 1)
         return t
 
     def sigmoid(self, x):
@@ -39,7 +30,8 @@ class ANN:
         # input layer
         sensor_distances.extend(self.memory)
         inputs = np.asarray(sensor_distances)
-        # TODO normalize?
+
+        # normalize inputs
         inputs = inputs / self.max_sensor_reach
 
         # hidden layer
@@ -53,42 +45,10 @@ class ANN:
         return velocities
 
     def convert_outputs_to_velocities(self, outputs, v_max):
-        # TODO
-        # print(outputs)
-        # print(1/(outputs[0] * 100))
-
-        # sigmoid
-        # v_wheel_l = (outputs[0] - 0.5) * 1000
-        # v_wheel_r = (outputs[1] - 0.5) * 1000
-
-        # tanh
-        # v_wheel_l = outputs[0] * 200
-        # v_wheel_r = outputs[1] * 200
-
-        # latest version:
-        # print(abs(math.log(outputs[0] * 100)), outputs[0]*100)
-        # v_wheel_l = outputs[0] * 100 * v_max * 3
-        # v_wheel_r = outputs[1] * 100 * v_max * 3
-        #
-        # log0 = abs(math.log(outputs[0] * 100))
-        # log1 = abs(math.log(outputs[1] * 100))
-        #
-        # v_min = 1
-        #
-        # norm0 = (log0 - v_min) / v_max - v_min
-        # norm1 = (log1 - v_min) / v_max - v_min
-        # print(norm0, norm1)
 
         v_wheel_l = abs((1 - outputs[0] * 1000) * 10)
         v_wheel_r = abs((1 - outputs[1] * 1000) * 10)
 
-        # v_wheel_l = outputs[0] * 10 * v_max
-        # v_wheel_r = outputs[1] * 10 * v_max
-
-        # v_wheel_l = outputs[0] * 1 * v_max
-        # v_wheel_r = outputs[1] * 1 * v_max
-
-        # print(v_wheel_l, v_wheel_r)
         return (v_wheel_l, v_wheel_r)
 
     def genotype_to_weights(self, genotype, bin_enc_len=7, prefix_divisor=10000):

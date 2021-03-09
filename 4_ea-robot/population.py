@@ -75,7 +75,8 @@ class Population:
 
         for i, individual in enumerate(self.individuals):
             # print("Individual %s" % i)
-            copy_robot = copy.deepcopy(robot)
+            # copy_robot = copy.deepcopy(robot)
+            copy_robot = robot
             ann = neural_network.ANN(copy_robot.get_sensor_distance_values(walls), individual,
                                     hidden_dim, copy_robot.max_sensor_reach)
             termination_counter = 0

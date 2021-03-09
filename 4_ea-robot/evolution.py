@@ -103,7 +103,7 @@ def measure_diversity(population):
 
     unique_individuals_tuple = list(set([tuple(g) for g in population.individuals]))
     unique_individuals = [list(t) for t in unique_individuals_tuple]
-    print("len(unique_individuals) ", len(unique_individuals))
+    # print("len(unique_individuals) ", len(unique_individuals))
 
     distances = []
     for idx_individual, individual in enumerate(unique_individuals):
@@ -111,7 +111,7 @@ def measure_diversity(population):
             distances.append(distance.hamming(individual, other_individual))
 
     max_distance = max(distances)
-    print("diversity distances", distances)
+    # print("diversity distances", distances)
 
     return max_distance
 
@@ -143,7 +143,7 @@ def plot_diversity(n_generation, diversity_measures):
     plt.ylabel("Diversity")
     plt.title("Diversity of Evolutionary Algorithm")
     # plt.legend()
-    # plt.show()
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -154,11 +154,11 @@ if __name__ == '__main__':
     # initializations
     screen, timer_event, font = initialize_pygame(c)
     robot = Robot(x=c.x, y=c.y, radius=c.radius, num_sensors=c.num_sensors, max_sensor_reach=c.max_sensor_reach)
-    orig_robot = copy.deepcopy(robot)
     walls = room.init_walls_coordinates(c.env_width, c.env_height, c.wall_length, c.room_shape)
 
     population = Population(c.n_individuals, c.num_sensors, c.hidden_dim)
-    f = population.evaluate_population(robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max, c.termination_threshold)
+    copy_robot = Robot(x=c.x, y=c.y, radius=c.radius, num_sensors=c.num_sensors, max_sensor_reach=c.max_sensor_reach)
+    f = population.evaluate_population(copy_robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max, c.termination_threshold)
     print(f)
     termination_counter = 0
     n_generations = 0
@@ -172,8 +172,9 @@ if __name__ == '__main__':
         selected = population.selection(c.n_best_percentage)
         population.replacement(selected)
         population.crossover_and_mutation(c.crossover_percentage, c.mutation_percentage, c.n_best_percentage)
-        f = population.evaluate_population(robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max, c.termination_threshold)
-        print(f)
+        copy_robot = Robot(x=c.x, y=c.y, radius=c.radius, num_sensors=c.num_sensors, max_sensor_reach=c.max_sensor_reach)
+        f = population.evaluate_population(copy_robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max, c.termination_threshold)
+        # print(f)
 
         diversity_measures.append(measure_diversity(population))
 
@@ -183,7 +184,7 @@ if __name__ == '__main__':
         index_best_individuum = population.fitness.index(max_fitness)
         print("fitness_best", max(population.fitness))
         best_genotype = population.individuals[index_best_individuum]
-        copy_robot = copy.deepcopy(robot)
+        copy_robot = Robot(x=c.x, y=c.y, radius=c.radius, num_sensors=c.num_sensors, max_sensor_reach=c.max_sensor_reach)
         ann = neural_network.ANN(copy_robot.get_sensor_distance_values(walls), best_genotype, c.hidden_dim,
                                  copy_robot.max_sensor_reach)
 
@@ -198,13 +199,14 @@ if __name__ == '__main__':
 
             if count == 0:
                 for steps in range(c.path_steps):
-                    print("steps ", steps)
+                    # print("steps ", steps)
 
                         #if event.type == timer_event:
-                    print("initialize copy_robot", copy_robot.sensor_score)
+                    # print("initialize copy_robot", copy_robot.sensor_score)
+                    # print("sensor distances", copy_robot.get_sensor_distance_values(walls))
                     v_left, v_right = ann.decode_genotype(copy_robot.get_sensor_distance_values(walls), best_genotype,
                                                           c.v_max)
-                    print("initialize copy_robot", copy_robot.sensor_score)
+                    # print("initialize copy_robot", copy_robot.sensor_score)
                     copy_robot.set_new_position(c.delta_t, v_left, v_right)
                     copy_robot.robot_is_crossing_wall(walls)
 
@@ -242,10 +244,10 @@ if __name__ == '__main__':
                 break
 
             count +=1
-            print(count)
+            # print(count)
 
 
-        print("copy robot score", copy_robot.sensor_score)
+        # print("copy robot score", copy_robot.sensor_score)
         print(population.fitness)
 
 
@@ -301,72 +303,75 @@ if __name__ == '__main__':
         # pygame.display.update()
         print("Generation: ", n_generations)
         if n_generations == 10:
-            break
 
-    plot_avg_and_max_fitness(n_generations, avg_fitnesses, max_fitnesses)
-    plot_diversity(n_generations, diversity_measures)
+            plot_avg_and_max_fitness(n_generations, avg_fitnesses, max_fitnesses)
+            plot_diversity(n_generations, diversity_measures)
+
+            ##### Test best individual in different room
+            test_room = "trapezoid"
+            walls = room.init_walls_coordinates(c.env_width, c.env_height, c.wall_length, test_room)
+            clock = pygame.time.Clock()
+            for event in pygame.event.get():
+                # pygame.event.pump()
+                # for key / action
+                # if event.type == pygame.QUIT:
+                #     # termination
+                #     sys.exit()
+
+                if count == 0:
+                    for steps in range(c.path_steps):
+                        print("steps ", steps)
+
+                        # if event.type == timer_event:
+                        v_left, v_right = ann.decode_genotype(copy_robot.get_sensor_distance_values(walls),
+                                                              best_genotype,
+                                                              c.v_max)
+                        copy_robot.set_new_position(c.delta_t, v_left, v_right)
+                        copy_robot.robot_is_crossing_wall(walls)
+
+                        copy_robot.update_sensors()
+
+                        sensor_d = copy_robot.get_sensor_distance_values(walls)
+
+                        # clear screen
+                        # game_surf.fill(empty)
+                        screen.fill((255, 255, 255))
+
+                        # drawGrid(screen)
+                        drawPath(screen, copy_robot, c.path_color)
+
+                        # draw scene
+                        draw_walls(screen, walls, c.wall_thickness, c.wall_color)
+                        draw_robot(screen, copy_robot, c.robot_color, sensor_d, font, draw_sensors=True)
+
+                        text = "Generation " + str(n_generations)
+                        textsurface = font.render(text, False, (0, 0, 0))
+                        screen.blit(textsurface, (100, 50))
+
+                        # text = "Step " + str(steps)
+                        # textsurface = font.render(text, False, (0, 0, 0))
+                        # screen.blit(textsurface, (200, 50))
+
+                        # update display
+                        # screen.blit(game_surf, (0, 0))
+                        pygame.display.update()
+                        clock.tick(60)
+
+                        # if count == steps:
+                        #     break
+                else:
+                    break
+
+                count += 1
+                print(count)
 
 
 
-    ##### Test best individual in different room
+
+
+
     # sys.exit()
     # pygame.display.quit()
     # pygam
     # screen, timer_event, font = initialize_pygame(c)
-    test_room = "rectangle"
-    walls = room.init_walls_coordinates(c.env_width, c.env_height, c.wall_length, test_room)
 
-    while True:
-        # clock = pygame.time.Clock()
-        for event in pygame.event.get():
-            # pygame.event.pump()
-            # for key / action
-            # if event.type == pygame.QUIT:
-            #     # termination
-            #     sys.exit()
-
-            if count == 0:
-                for steps in range(c.path_steps):
-                    print("steps ", steps)
-
-                    # if event.type == timer_event:
-                    v_left, v_right = ann.decode_genotype(copy_robot.get_sensor_distance_values(walls), best_genotype,
-                                                          c.v_max)
-                    copy_robot.set_new_position(c.delta_t, v_left, v_right)
-                    copy_robot.robot_is_crossing_wall(walls)
-
-                    copy_robot.update_sensors()
-
-                    sensor_d = copy_robot.get_sensor_distance_values(walls)
-
-                    # clear screen
-                    # game_surf.fill(empty)
-                    screen.fill((255, 255, 255))
-
-                    # drawGrid(screen)
-                    drawPath(screen, copy_robot, c.path_color)
-
-                    # draw scene
-                    draw_walls(screen, walls, c.wall_thickness, c.wall_color)
-                    draw_robot(screen, copy_robot, c.robot_color, sensor_d, font, draw_sensors=True)
-
-                    text = "Generation " + str(n_generations)
-                    textsurface = font.render(text, False, (0, 0, 0))
-                    screen.blit(textsurface, (100, 50))
-
-                    # text = "Step " + str(steps)
-                    # textsurface = font.render(text, False, (0, 0, 0))
-                    # screen.blit(textsurface, (200, 50))
-
-                    # update display
-                    # screen.blit(game_surf, (0, 0))
-                    pygame.display.update()
-                    clock.tick(60)
-
-                    # if count == steps:
-                    #     break
-            else:
-                break
-
-            count += 1
-            print(count)
