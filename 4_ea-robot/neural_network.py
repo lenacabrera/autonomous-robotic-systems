@@ -11,7 +11,7 @@ class ANN:
         self.output_dim = 2  # left and right wheel
 
         # recurrent nodes
-        self.memory = [random.randint(1,max_sensor_reach) for i in range(hidden_dim)]
+        self.memory = [random.randint(1, max_sensor_reach) for i in range(hidden_dim)]
         # self.memory = [max_sensor_reach for i in range(hidden_dim)]
 
         self.max_sensor_reach = max_sensor_reach
@@ -48,6 +48,10 @@ class ANN:
 
         v_wheel_l = abs((1 - outputs[0] * 1000) * 10)
         v_wheel_r = abs((1 - outputs[1] * 1000) * 10)
+        # print(outputs[0] * 100 * v_max, outputs[0])
+
+        # v_wheel_l = outputs[0] * 100 * v_max
+        # v_wheel_r = outputs[1] * 100 * v_max
 
         return (v_wheel_l, v_wheel_r)
 

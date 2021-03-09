@@ -32,4 +32,5 @@ def robot_fitness(robot, wall_length):
     #     return cleaned_area * 1 / sensor_ev #/ total_area
 
     # evtl.: multiply with constants
-    return  cleaned_area / total_area
+    # return  cleaned_area / total_area
+    return (cleaned_area / total_area) * sensor_ev

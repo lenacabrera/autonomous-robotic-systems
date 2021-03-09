@@ -18,20 +18,20 @@ class Configuration:
         # robot
         self.x = self.env_width / 2
         self.y = self.env_height / 2
-        self.v = 0.5
+        #self.v = 0.5
         self.v_max = 15
         self.radius = self.env_width / 20
         self.num_sensors = 12
         self.max_sensor_reach = 4 * self.radius
         self.robot_color = (153, 204, 255)
         self.delta_t = 0.1
-        self.path_steps = 40  #20
+        self.path_steps = 10  #20
         self.path_color = (204, 229, 255)
         self.position_initialization = "center"  # center, corner
 
         # evolutionary algorithm
-        self.n_individuals = 100
-        self.n_iterations = 100
+        self.n_individuals = 30
+        self.max_n_generations = 100
         self.n_best_percentage = 0.8
         self.crossover_percentage = 0.2
         self.mutation_percentage = 0.05

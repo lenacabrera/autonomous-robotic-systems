@@ -8,6 +8,7 @@ from population import Population
 import room
 from scipy.spatial import distance
 import matplotlib.pyplot as plt
+import copy
 
 def draw_walls(screen, walls, wall_thickness, wall_color):
 
@@ -144,9 +145,11 @@ if __name__ == '__main__':
     walls = room.init_walls_coordinates(c.env_width, c.env_height, c.wall_length, c.room_shape)
 
     population = Population(c.n_individuals, c.num_sensors, c.hidden_dim)
-    copy_robot = Robot(x=c.x, y=c.y, radius=c.radius, num_sensors=c.num_sensors, max_sensor_reach=c.max_sensor_reach)
-    f = population.evaluate_population(copy_robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max, c.termination_threshold)
-    print(f)
+    # copy_robot = Robot(x=c.x, y=c.y, radius=c.radius, num_sensors=c.num_sensors, max_sensor_reach=c.max_sensor_reach)
+    # copy_robot = copy.deepcopy(robot)
+    copy_robot = robot
+    population.evaluate_population(copy_robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max, c.termination_threshold)
+    print("Initial Fitness", population.fitness)
     termination_counter = 0
     n_generations = 0
     avg_fitnesses = []
@@ -160,7 +163,8 @@ if __name__ == '__main__':
         population.replacement(selected)
         population.crossover_and_mutation(c.crossover_percentage, c.mutation_percentage, c.n_best_percentage)
         copy_robot = Robot(x=c.x, y=c.y, radius=c.radius, num_sensors=c.num_sensors, max_sensor_reach=c.max_sensor_reach)
-        f = population.evaluate_population(copy_robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max, c.termination_threshold)
+        # copy_robot = copy.deepcopy(robot)
+        population.evaluate_population(copy_robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max, c.termination_threshold)
 
         diversity_measures.append(measure_diversity(population))
 
@@ -171,6 +175,7 @@ if __name__ == '__main__':
         print("fitness_best", max(population.fitness))
         best_genotype = population.individuals[index_best_individuum]
         copy_robot = Robot(x=c.x, y=c.y, radius=c.radius, num_sensors=c.num_sensors, max_sensor_reach=c.max_sensor_reach)
+        # copy_robot = copy.deepcopy(robot)
         ann = neural_network.ANN(copy_robot.get_sensor_distance_values(walls), best_genotype, c.hidden_dim,
                                  copy_robot.max_sensor_reach)
 
@@ -179,11 +184,11 @@ if __name__ == '__main__':
         for event in pygame.event.get():
 
             if count == 0:
-                for steps in range(c.path_steps):
+                for steps in range(c.path_steps * 5 * n_generations):
 
                     v_left, v_right = ann.decode_genotype(copy_robot.get_sensor_distance_values(walls), best_genotype,
                                                           c.v_max)
-                    # print("initialize copy_robot", copy_robot.sensor_score)
+
                     copy_robot.set_new_position(c.delta_t, v_left, v_right)
                     copy_robot.robot_is_crossing_wall(walls)
 
@@ -213,7 +218,7 @@ if __name__ == '__main__':
 
             count +=1
 
-        print(population.fitness)
+        print("Current Fitness", population.fitness)
 
 
         # TERMINATION
@@ -229,11 +234,11 @@ if __name__ == '__main__':
 
         old_avg_fitness = new_avg_fitness
         avg_fitnesses.append(old_avg_fitness)
-        if termination_counter >= c.termination_threshold or n_generations == c.n_iterations:
+        if termination_counter >= c.termination_threshold or n_generations == c.max_n_generations:
             # terminate
             if termination_counter >= c.termination_threshold:
                 print("Terminate - because fitness stagnates")
-            if n_generations == c.n_iterations:
+            if n_generations == c.max_n_generations:
                 print("Terminate - because maximum number of generations reached")
             print("Average Fitness: ", old_avg_fitness)
             break

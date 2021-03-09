@@ -116,12 +116,14 @@ class Robot:
                     if intersection.is_empty:
                         # if no intersection -> maximum sensor reach
                         sensor_distances.append(self.max_sensor_reach)
+                        self.sensor_score *= self.max_sensor_reach / self.max_sensor_reach
                     else:
                         # if intersection
                         a = abs(self.x - intersection.x)
                         b = abs(self.y - intersection.y)
                         c = math.sqrt(math.pow(a, 2) + math.pow(b, 2)) - self.radius
                         sensor_distances.append(c)
+                        self.sensor_score *= c / self.max_sensor_reach
                         if int(c) == 0:
                             # if robot hit the wall, make score zero
                             self.sensor_score = 0

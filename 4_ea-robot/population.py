@@ -52,7 +52,7 @@ class Population:
             genotype = []
 
             for i_weight in range(n_weights):
-                weight_suffix_int = random.randint(1, 100)
+                weight_suffix_int = random.randint(10, 100)
                 weight_suffix_bin = [int(x) for x in list('{0:0b}'.format(weight_suffix_int))]
                 weight = []
 
@@ -98,7 +98,6 @@ class Population:
             fitness.append(fitness_function.robot_fitness(copy_robot, wall_length))
 
         self.fitness = fitness
-        return fitness
 
     def selection(self, n_best_percentage):
         # truncated rank-based
