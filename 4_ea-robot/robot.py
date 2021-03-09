@@ -29,7 +29,7 @@ class Robot:
         self.circles = [Point(self.x, self.y).buffer(self.radius), Point(self.x, self.y).buffer(self.radius)]
 
         self.sensor_score = 10
-        self.score = 0 #self.circles[0].area
+        self.score = 0
 
     def init_sensors(self):
         self.update_sensors()
@@ -60,52 +60,42 @@ class Robot:
 
         # walls right of robot
         for right_wall in walls["right"]:
-            # line_right = LineString([(self.x_prev - 1 + self.radius, self.y_prev), (self.x + self.radius, self.y)])
             line_right = LineString([(self.x_prev, self.y_prev), (self.x + self.radius, self.y)])
             wall_right = LineString([right_wall[0], right_wall[1]])
             intersection_right = wall_right.intersection(line_right)
             if not intersection_right.is_empty:
-                # x = walls["right"][0][0] - self.radius
                 x = intersection_right.x - self.radius
 
         # walls left of robot
         for left_wall in walls["left"]:
-            # line_left = LineString([(self.x_prev + 1 - self.radius, self.y_prev), (self.x - self.radius, self.y)])
             line_left = LineString([(self.x_prev, self.y_prev), (self.x - self.radius, self.y)])
             wall_left = LineString([left_wall[0], left_wall[1]])
             intersection_left = wall_left.intersection(line_left)
             if not intersection_left.is_empty:
-                # x = walls["left"][0][0] + self.radius
                 x = intersection_left.x + self.radius
 
         # walls above robot
         for top_wall in walls["top"]:
-            # line_top = LineString([(self.x_prev, self.y_prev - self.radius + 1), (self.x, self.y - self.radius)])
             line_top = LineString([(self.x_prev, self.y_prev), (self.x, self.y - self.radius)])
             wall_top = LineString([top_wall[0], top_wall[1]])
             intersection_top = wall_top.intersection(line_top)
             if not intersection_top.is_empty:
-                # y = walls["top"][0][1] + self.radius
                 y = intersection_top.y + self.radius
 
         # walls below robot
         for bottom_wall in walls["bottom"]:
-            # line_bottom = LineString([(self.x_prev, self.y_prev + self.radius - 1), (self.x, self.y + self.radius)])
             line_bottom = LineString([(self.x_prev, self.y_prev), (self.x, self.y + self.radius)])
             wall_bottom = LineString([bottom_wall[0], bottom_wall[1]])
             intersection_bottom = wall_bottom.intersection(line_bottom)
             if not intersection_bottom.is_empty:
-                # y = walls["bottom"][0][1] - self.radius
                 y = intersection_bottom.y - self.radius
 
         self.x = x
         self.y = y
 
-        # if self.x != self.positions[-1][0] and self.x != self.positions[-1][1]:
         self.positions.append((self.x, self.y))
         self.circles.append(Point(self.x, self.y).buffer(self.radius))
         self.update_score()
-        # print(self.score)
 
         if intersection_left.is_empty and intersection_right.is_empty and intersection_top.is_empty and intersection_bottom.is_empty:
             return
@@ -126,22 +116,18 @@ class Robot:
                     if intersection.is_empty:
                         # if no intersection -> maximum sensor reach
                         sensor_distances.append(self.max_sensor_reach)
-                        #self.sensor_score *= self.max_sensor_reach/self.max_sensor_reach
                     else:
                         # if intersection
                         a = abs(self.x - intersection.x)
                         b = abs(self.y - intersection.y)
                         c = math.sqrt(math.pow(a, 2) + math.pow(b, 2)) - self.radius
                         sensor_distances.append(c)
-                        #self.sensor_score *= c/self.max_sensor_reach
-                        #print("c", c)
                         if int(c) == 0:
-                            #print("score is zero")
+                            # if robot hit the wall, make score zero
                             self.sensor_score = 0
 
             distance_values.append(min(sensor_distances))
 
-        #print(self.sensor_score)
         return distance_values
 
     def set_new_position(self, delta_t, v_left, v_right):
@@ -213,5 +199,3 @@ class Robot:
                             self.y + np.sin(new[2][0]) * self.radius)
 
         self.line_angle = new[2][0]
-
-        #self.positions.append((self.x, self.y))

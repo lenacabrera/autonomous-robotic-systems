@@ -1,7 +1,5 @@
 import neural_network
-import copy
 import pygame
-import sys
 from robot import Robot
 import math
 import numpy as np
@@ -84,7 +82,6 @@ def draw_generation_info(generation, env_width, avg_fitness):
     fitness_font = pygame.font.SysFont('Arial', 18)
     screen.blit(generation_font.render(generation_str, False, (0, 0, 0)), (20, 10))  # position in corner
     screen.blit(fitness_font.render(fitness_str, False, (0, 0, 0)), (20, 40))  # position in corner
-    # screen.blit(textsurface, (env_width/2-50, 20))  # position in center
 
 def initialize_pygame(c):
     pygame.init()
@@ -95,7 +92,6 @@ def initialize_pygame(c):
     timer_event = pygame.USEREVENT + 1
     time = 500  # TODO: fine-tuning
     pygame.time.set_timer(timer_event, time)
-    # game_surf = pygame.surface.Surface((c.env_width, c.env_height))
 
     return screen, timer_event, font
 
@@ -103,7 +99,6 @@ def measure_diversity(population):
 
     unique_individuals_tuple = list(set([tuple(g) for g in population.individuals]))
     unique_individuals = [list(t) for t in unique_individuals_tuple]
-    # print("len(unique_individuals) ", len(unique_individuals))
 
     distances = []
     for idx_individual, individual in enumerate(unique_individuals):
@@ -111,16 +106,12 @@ def measure_diversity(population):
             distances.append(distance.hamming(individual, other_individual))
 
     max_distance = max(distances)
-    # print("diversity distances", distances)
 
     return max_distance
 
 def plot_avg_and_max_fitness(n_generation, avg_fitnesses, max_fitnesses):
 
         generation = list(range(n_generation))
-        # avg_fitnesses.pop(0)
-        # avg_fitnesses.pop(0)
-
         fig, ax = plt.subplots()
         ax.plot(generation, avg_fitnesses, marker='.', label="Average")
         ax.plot(generation, max_fitnesses, marker='>', label="Max")
@@ -128,15 +119,11 @@ def plot_avg_and_max_fitness(n_generation, avg_fitnesses, max_fitnesses):
         plt.ylabel("Fitness")
         plt.title("Performance of Evolutionary Algorithm")
         plt.legend()
-        # plt.show()
 
 
 def plot_diversity(n_generation, diversity_measures):
 
     generation = list(range(n_generation))
-    # avg_fitnesses.pop(0)
-    # avg_fitnesses.pop(0)
-
     fig, ax = plt.subplots()
     ax.plot(generation, diversity_measures, marker='.')
     plt.xlabel("Generation")
@@ -174,7 +161,6 @@ if __name__ == '__main__':
         population.crossover_and_mutation(c.crossover_percentage, c.mutation_percentage, c.n_best_percentage)
         copy_robot = Robot(x=c.x, y=c.y, radius=c.radius, num_sensors=c.num_sensors, max_sensor_reach=c.max_sensor_reach)
         f = population.evaluate_population(copy_robot, walls, c.hidden_dim, c.delta_t, c.wall_length, c.path_steps, c.v_max, c.termination_threshold)
-        # print(f)
 
         diversity_measures.append(measure_diversity(population))
 
@@ -191,19 +177,10 @@ if __name__ == '__main__':
         count = 0
         clock = pygame.time.Clock()
         for event in pygame.event.get():
-            # pygame.event.pump()
-            # for key / action
-            # if event.type == pygame.QUIT:
-            #     # termination
-            #     sys.exit()
 
             if count == 0:
                 for steps in range(c.path_steps):
-                    # print("steps ", steps)
 
-                        #if event.type == timer_event:
-                    # print("initialize copy_robot", copy_robot.sensor_score)
-                    # print("sensor distances", copy_robot.get_sensor_distance_values(walls))
                     v_left, v_right = ann.decode_genotype(copy_robot.get_sensor_distance_values(walls), best_genotype,
                                                           c.v_max)
                     # print("initialize copy_robot", copy_robot.sensor_score)
@@ -215,7 +192,6 @@ if __name__ == '__main__':
                     sensor_d = copy_robot.get_sensor_distance_values(walls)
 
                     # clear screen
-                    #game_surf.fill(empty)
                     screen.fill((255, 255, 255))
 
                     #drawGrid(screen)
@@ -229,25 +205,14 @@ if __name__ == '__main__':
                     textsurface = font.render(text, False, (0, 0, 0))
                     screen.blit(textsurface, (100, 50))
 
-                    # text = "Step " + str(steps)
-                    # textsurface = font.render(text, False, (0, 0, 0))
-                    # screen.blit(textsurface, (200, 50))
-
-                    # update display
-                    # screen.blit(game_surf, (0, 0))
                     pygame.display.update()
                     clock.tick(60)
 
-                    # if count == steps:
-                    #     break
             else:
                 break
 
             count +=1
-            # print(count)
 
-
-        # print("copy robot score", copy_robot.sensor_score)
         print(population.fitness)
 
 
@@ -261,8 +226,7 @@ if __name__ == '__main__':
             termination_counter += 1
         else:
             termination_counter = 0
-        # print("\nold_avg_fitness   new_avg_fitness")
-        # print(old_avg_fitness, new_avg_fitness)
+
         old_avg_fitness = new_avg_fitness
         avg_fitnesses.append(old_avg_fitness)
         if termination_counter >= c.termination_threshold or n_generations == c.n_iterations:
@@ -274,33 +238,15 @@ if __name__ == '__main__':
             print("Average Fitness: ", old_avg_fitness)
             break
 
-
-        # print(population.fitness)
         # # evaluate fitness of current generation
         if n_generations == 0:
             old_best_fitness = max(population.fitness)
         new_best_fitness = max(population.fitness)
-        # if new_best_fitness <= old_best_fitness:
-        #     # fitness stagnates or gets worse
-        #     termination_counter += 1
-        # else:
-        #     termination_counter = 0
         print("\nold_best_fitness   new_best_fitness")
         print(old_best_fitness, new_best_fitness)
         old_best_fitness = new_best_fitness
-        # fitnesses.append(old_avg_fitness)
-        # if termination_counter >= c.termination_threshold or n_generations == c.n_iterations:
-        #     # terminate
-        #     if termination_counter >= c.termination_threshold:
-        #         print("Terminate - because fitness stagnates")
-        #     if n_generations == c.n_iterations:
-        #         print("Terminate - because maximum number of generations reached")
-        #     print("Average Fitness: ", old_avg_fitness)
-        #     break
 
         n_generations += 1
-        # draw_generation_info(n_generations, c.env_width, max(population.fitness))
-        # pygame.display.update()
         print("Generation: ", n_generations)
         if n_generations == 10:
 
@@ -312,17 +258,11 @@ if __name__ == '__main__':
             walls = room.init_walls_coordinates(c.env_width, c.env_height, c.wall_length, test_room)
             clock = pygame.time.Clock()
             for event in pygame.event.get():
-                # pygame.event.pump()
-                # for key / action
-                # if event.type == pygame.QUIT:
-                #     # termination
-                #     sys.exit()
 
                 if count == 0:
                     for steps in range(c.path_steps):
                         print("steps ", steps)
 
-                        # if event.type == timer_event:
                         v_left, v_right = ann.decode_genotype(copy_robot.get_sensor_distance_values(walls),
                                                               best_genotype,
                                                               c.v_max)
@@ -334,10 +274,8 @@ if __name__ == '__main__':
                         sensor_d = copy_robot.get_sensor_distance_values(walls)
 
                         # clear screen
-                        # game_surf.fill(empty)
                         screen.fill((255, 255, 255))
 
-                        # drawGrid(screen)
                         drawPath(screen, copy_robot, c.path_color)
 
                         # draw scene
@@ -348,30 +286,12 @@ if __name__ == '__main__':
                         textsurface = font.render(text, False, (0, 0, 0))
                         screen.blit(textsurface, (100, 50))
 
-                        # text = "Step " + str(steps)
-                        # textsurface = font.render(text, False, (0, 0, 0))
-                        # screen.blit(textsurface, (200, 50))
-
                         # update display
-                        # screen.blit(game_surf, (0, 0))
                         pygame.display.update()
                         clock.tick(60)
 
-                        # if count == steps:
-                        #     break
                 else:
                     break
 
                 count += 1
-                print(count)
-
-
-
-
-
-
-    # sys.exit()
-    # pygame.display.quit()
-    # pygam
-    # screen, timer_event, font = initialize_pygame(c)
 

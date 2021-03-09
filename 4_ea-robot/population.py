@@ -1,6 +1,4 @@
-import copy
 import random
-import numpy as np
 import fitness_function
 import neural_network
 

@@ -1,3 +1,4 @@
+
 def init_walls_coordinates(env_width, env_height, wall_length, room_shape):
 
     # wall frame distance
