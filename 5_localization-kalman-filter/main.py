@@ -56,13 +56,23 @@ def draw_robot(screen, robot, robot_color, distance_values, draw_sensors=False):
     # display motor speed values
     text = str(int(robot.v_wheel_r))
     textsurface = myfont.render(text, False, (0, 0, 0))
-    screen.blit(textsurface, (robot.x + np.cos(robot.line_angle + math.pi /2) * robot.radius /2,
-                              robot.y + np.sin(robot.line_angle + math.pi /2) * robot.radius /2))
+    screen.blit(textsurface, (robot.x + np.cos(robot.line_angle + math.pi / 2) * robot.radius / 2,
+                              robot.y + np.sin(robot.line_angle + math.pi / 2) * robot.radius / 2))
 
     text = str(int(robot.v_wheel_l))
     textsurface = myfont.render(text, False, (0, 0, 0))
-    screen.blit(textsurface, (robot.x + np.cos(robot.line_angle + 3 * math.pi/2) * robot.radius / 2,
-                              robot.y + np.sin(robot.line_angle + 3 * math.pi/2) * robot.radius / 2))
+    screen.blit(textsurface, (robot.x + np.cos(robot.line_angle + 3 * math.pi / 2) * robot.radius / 2,
+                              robot.y + np.sin(robot.line_angle + 3 * math.pi / 2) * robot.radius / 2))
+
+
+def draw_robot_way(robot):
+    robot_positions = robot.positions
+    print(robot_positions)
+
+    for start in range(len(robot_positions) - 1):
+        pygame.draw.line(surface=screen, color=(0, 0, 0), width=2,
+                         start_pos=(robot_positions[start][0], robot_positions[start][1]),
+                         end_pos=(robot_positions[start + 1][0], robot_positions[start + 1][1]))
 
 
 def init_walls_coordinates(env_width, env_height, wall_length):
@@ -91,6 +101,7 @@ def init_walls_coordinates(env_width, env_height, wall_length):
 
     return walls
 
+
 # Work distribution:
 # Sensor model by Lena
 # Motion model by Kathrin
@@ -111,7 +122,7 @@ if __name__ == '__main__':
     radius = env_width / 20
     num_sensors = 12
     max_sensor_reach = 2 * radius
-    robot_color = (153,204,255)
+    robot_color = (153, 204, 255)
     robot = Robot(x, y, radius, num_sensors, max_sensor_reach)
 
     # walls
@@ -128,7 +139,7 @@ if __name__ == '__main__':
 
     # initialize timer in order to provide constant timer-events
     timer_event = pygame.USEREVENT + 1
-    time = 250  #TODO: fine-tuning
+    time = 250  # TODO: fine-tuning
     pygame.time.set_timer(timer_event, time)
 
     # run animation
@@ -184,6 +195,7 @@ if __name__ == '__main__':
 
                 # draw scene
                 draw_walls(screen, walls, wall_thickness, wall_color)
+                draw_robot_way(robot)
                 draw_robot(screen, robot, robot_color, sensor_d, draw_sensors=True)
 
                 # update

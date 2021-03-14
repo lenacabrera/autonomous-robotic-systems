@@ -15,6 +15,8 @@ class Robot:
         self.x_prev = x
         self.y_prev = y
 
+        self.positions = [(x, y)]
+
         self.v_wheel_l = 0
         self.v_wheel_r = 0
 
@@ -73,6 +75,8 @@ class Robot:
 
         self.x = x
         self.y = y
+
+        self.positions.append((x, y))
 
         if intersection_left.is_empty and intersection_right.is_empty and intersection_top.is_empty and intersection_bottom.is_empty:
             return
