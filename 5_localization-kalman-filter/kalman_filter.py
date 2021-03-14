@@ -1,6 +1,7 @@
 import numpy as np
 import math
 
+
 def call_kalman_filter(x, y, Theta, v, omega, delta_t):
     # slide 9
     mu = np.array([[x],
@@ -18,22 +19,22 @@ def call_kalman_filter(x, y, Theta, v, omega, delta_t):
 
     # slide 26, TODO delta entspricht Q
     delta = np.array([[0],
-                   [0],
-                   [0]])
+                      [0],
+                      [0]])
     z = mu + delta
 
-    new_mu, new_Sigma = kalman_filter(mu, Sigma, u, z, Theta, delta_t)
+    new_mu, new_Sigma = kalman_filter(mu, Sigma, u, z, delta_t)
 
 
-def kalman_filter(mu, Sigma, u, z, Theta, delta_t):
+def kalman_filter(mu, Sigma, u, z, delta_t):
     # slide 15
     A = np.array([[1, 0, 0],
                   [0, 1, 0],
                   [0, 0, 1]])
 
     # slide 15
-    B = np.array([[delta_t * math.cos(Theta), 0],
-                  [delta_t * math.cos(Theta), 0],
+    B = np.array([[delta_t * math.cos(mu[2]), 0],
+                  [delta_t * math.cos(mu[2]), 0],
                   [0, delta_t]])
 
     # slide 16 # TODO
@@ -62,6 +63,7 @@ def kalman_filter(mu, Sigma, u, z, Theta, delta_t):
     # correction
     K = np.matmul(np.matmul(Sigma_estimate, C.transpose()),
                   np.linalg.inv(np.matmul(np.matmul(C, Sigma_estimate), C.transpose()) + Q))
+
     mu = mu_estimate + K(z - np.matmul(C, mu_estimate))
     Sigma = np.matmul((I - np.matmul(K, C)), Sigma_estimate)
 

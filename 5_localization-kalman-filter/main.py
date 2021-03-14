@@ -111,7 +111,6 @@ def draw_robot(screen, robot, robot_color, distance_values, draw_sensors=False):
 
 def draw_robot_way(robot):
     robot_positions = robot.positions
-    print(robot_positions)
 
     for start in range(len(robot_positions) - 1):
         pygame.draw.line(surface=screen, color=(0, 0, 0), width=2,
