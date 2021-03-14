@@ -2,9 +2,9 @@
 
 TODO
 Lena
-- beacon -> tuple / array?
-- change spider robot to bubble robot (omnidirectional sensor instead of sensors at certain angles)
-- check intersection robot sensor with landmark / beacon, add green line between robot and feature
+DONE - beacon -> tuple / array?
+DONE - change spider robot to bubble robot (omnidirectional sensor instead of sensors at certain angles)
+DONE - check intersection robot sensor with landmark / beacon, add green line between robot and feature
 
 Kathrin
 - draw path / trajectory (solid line) -> for line, connect all robot positions
