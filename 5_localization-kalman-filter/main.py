@@ -1,8 +1,9 @@
 import pygame
 import sys
-from robot import Robot
 import math
 import numpy as np
+from shapely.geometry import Point
+from robot import Robot
 
 
 def draw_walls(screen, walls, wall_thickness, wall_color):
@@ -24,6 +25,49 @@ def draw_walls(screen, walls, wall_thickness, wall_color):
     pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
                      start_pos=walls['bottom'][0],
                      end_pos=walls['bottom'][1])
+
+
+def draw_landmarks(screen, landmarks, visible_landmarks, robot):
+    for landmark in landmarks:
+        pygame.draw.circle(surface=screen, color=(0, 0, 0), center=(landmark.x, landmark.y), radius=5)
+
+    for visible_landmark in visible_landmarks:
+        # solid line
+        # pygame.draw.line(surface=screen, color=(0, 158, 0), width=2,
+        #                  start_pos=(robot.x, robot.y), end_pos=(visible_landmark.x, visible_landmark.y))
+
+        # dashed line
+        draw_dashed_line(screen, color=(0, 158, 0),
+                         start_pos=(robot.x, robot.y), end_pos=(visible_landmark.x, visible_landmark.y))
+
+
+def draw_dashed_line(surf, color, start_pos, end_pos, width=2, dash_length=5):
+    x1, y1 = start_pos
+    x2, y2 = end_pos
+    dl = dash_length
+
+    # if start_pos[0] == end_pos[0]:
+    #     ycoords = [y for y in range(y1, y2, dl if y1 < y2 else -dl)]
+    #     xcoords = [x1] * len(ycoords)
+    # elif start_pos[1] == end_pos[1]:
+    #     xcoords = [x for x in range(x1, x2, dl if x1 < x2 else -dl)]
+    #     ycoords = [y1] * len(xcoords)
+    # else:
+    a = abs(x2 - x1)
+    b = abs(y2 - y1)
+    c = round(math.sqrt(a ** 2 + b ** 2))
+    dx = dl * a / c
+    dy = dl * b / c
+
+    xcoords = [x for x in np.arange(x1, x2, dx if x1 < x2 else -dx)]
+    ycoords = [y for y in np.arange(y1, y2, dy if y1 < y2 else -dy)]
+
+    next_coords = list(zip(xcoords[1::2], ycoords[1::2]))
+    last_coords = list(zip(xcoords[0::2], ycoords[0::2]))
+    for (x1, y1), (x2, y2) in zip(next_coords, last_coords):
+        start = (round(x1), round(y1))
+        end = (round(x2), round(y2))
+        pygame.draw.line(surf, color, start, end, width)
 
 
 def draw_robot(screen, robot, robot_color, distance_values, draw_sensors=False):
@@ -102,10 +146,33 @@ def init_walls_coordinates(env_width, env_height, wall_length):
     return walls
 
 
-# Work distribution:
-# Sensor model by Lena
-# Motion model by Kathrin
-# Collision detection by Lena and Kathrin
+def init_landmarks(env_width, env_height, wall_length):
+    dist_l_r = (env_width - wall_length) / 2  # distance to frame, left and right
+    dist_t_b = (env_height - wall_length) / 2  # distance to frame, top and bottom
+
+    room_l = dist_l_r
+    room_r = env_width - dist_l_r
+    room_t = dist_t_b
+    room_b = env_height - dist_t_b
+
+    f = 0.17 * wall_length
+    positions = [
+        (room_l + 1.2 * f, room_t + 1.5 * f),
+        (room_l + 2.5 * f, room_t + 3.4 * f),
+        (room_l + 4.3 * f, room_t + 2.9 * f),
+        (room_l + 5.3 * f, room_t + 3.9 * f),
+        (room_l + 4.8 * f, room_t + 5.0 * f),
+        (room_l + 3.9 * f, room_t + 3.7 * f),
+
+    ]
+
+    landmarks = []
+    for position in positions:
+        landmarks.append(Point(position))
+
+    return landmarks
+
+
 if __name__ == '__main__':
     # environment
     env_width = 750
@@ -125,8 +192,9 @@ if __name__ == '__main__':
     robot_color = (153, 204, 255)
     robot = Robot(x, y, radius, num_sensors, max_sensor_reach)
 
-    # walls
+    # environment
     walls = init_walls_coordinates(env_width, env_height, wall_length)
+    landmarks = init_landmarks(env_width, env_height, wall_length)
 
     # initialize pygame
     pygame.init()
@@ -190,13 +258,18 @@ if __name__ == '__main__':
                 robot.update_sensors()
                 sensor_d = robot.get_sensor_distance_values(walls)
 
+                visible_landmarks = robot.check_landmarks_in_sight(landmarks)
+
                 # clear screen
                 screen.fill((255, 255, 255))
 
                 # draw scene
                 draw_walls(screen, walls, wall_thickness, wall_color)
+                # for testing of sensor circle and visibility of landmarks
+                # pygame.draw.circle(surface=screen, color=(0, 158, 0), center=(robot.x, robot.y), radius=robot.max_sensor_reach+robot.radius, width=2)
                 draw_robot_way(robot)
-                draw_robot(screen, robot, robot_color, sensor_d, draw_sensors=True)
+                draw_robot(screen, robot, robot_color, sensor_d, draw_sensors=False)
+                draw_landmarks(screen, landmarks, visible_landmarks, robot)
 
                 # update
                 pygame.display.update()

@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 
 
 class Robot:
@@ -24,6 +24,10 @@ class Robot:
         self.max_sensor_reach = max_sensor_reach
         self.sensor_list = []
         self.init_sensors()
+
+        # omni-directional sensor
+        center_point = Point(self.x, self.y)
+        self.sensor_circle = center_point.buffer(self.radius + self.max_sensor_reach)
 
     def init_sensors(self):
         self.update_sensors()
@@ -84,6 +88,17 @@ class Robot:
             # update orientation if robot bumped into wall
             radians = math.atan2(self.orientation[1] - self.y_prev, self.orientation[0] - self.x_prev)
             self.orientation = (self.x + (self.radius * math.cos(radians)), self.y + (self.radius * math.sin(radians)))
+
+    def check_landmarks_in_sight(self, landmarks):
+        # check which landmarks are in sight of robot
+
+        visible_landmarks = []
+        for landmark in landmarks:
+            if not self.sensor_circle.intersection(landmark).is_empty:
+                visible_landmarks.append(landmark)
+
+        return visible_landmarks
+
 
     def get_sensor_distance_values(self, walls):
         distance_values = []
@@ -173,3 +188,6 @@ class Robot:
                             self.y + np.sin(new[2][0]) * self.radius)
 
         self.line_angle = new[2][0]
+
+        center_point = Point(self.x, self.y)
+        self.sensor_circle = center_point.buffer(self.radius + self.max_sensor_reach)
