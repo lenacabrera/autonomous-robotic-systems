@@ -124,10 +124,12 @@ def draw_kalman_filter_way(kalman_filter):
 
     # TODO: dashed line
     for start in range(len(kalman_filter_positions) - 1):
+
         # draw_dashed_line(screen, color=(0, 0, 0),
         #                  start_pos=(kalman_filter_positions[start][0], kalman_filter_positions[start][1]),
         #                  end_pos=(kalman_filter_positions[start + 1][0], kalman_filter_positions[start + 1][1]))
-        pygame.draw.line(surface=screen, color=(0, 0, 0), width=2,
+
+        pygame.draw.line(surface=screen, color=(123, 54, 167), width=2,
                          start_pos=(kalman_filter_positions[start][0], kalman_filter_positions[start][1]),
                          end_pos=(kalman_filter_positions[start + 1][0], kalman_filter_positions[start + 1][1]))
 
@@ -198,14 +200,14 @@ if __name__ == '__main__':
     x = env_width / 2
     y = env_height / 2
     o = 0.1  # TODO
-    v = 0.5
+    v = 1
     v_max = 15
     radius = env_width / 20
     num_sensors = 12
     max_sensor_reach = 2 * radius
     robot_color = (153, 204, 255)
     robot = Robot(x, y, radius, num_sensors, max_sensor_reach)
-    delta_t = 0.1
+    delta_t = 1#0.1
 
     kalman_filter = KalmanFilter(robot.x, robot.y, 0, (robot.v_wheel_l + robot.v_wheel_r) / 2, robot.omega)
 
@@ -269,32 +271,33 @@ if __name__ == '__main__':
 
             if pressed_keys[pygame.K_x]:
                 # stop
-                robot.v = 0
+                robot.v_wheel_l = 0
+                robot.v_wheel_r = 0
 
-            if (robot.v_wheel_l + robot.v_wheel_r) / 2 < v_max:
-
-                if pressed_keys[pygame.K_w]:
-                    robot.v_wheel_l += v
-                if pressed_keys[pygame.K_o]:
-                    robot.v_wheel_r += v
-                if pressed_keys[pygame.K_t]:
-                    robot.v_wheel_l += v
-                    robot.v_wheel_r += v
-                if pressed_keys[pygame.K_x]:
-                    robot.v_wheel_l = 0
-                    robot.v_wheel_r = 0
-
-            if (robot.v_wheel_l + robot.v_wheel_r) / 2 > - v_max:
-                if pressed_keys[pygame.K_s]:
-                    robot.v_wheel_l -= v
-                if pressed_keys[pygame.K_l]:
-                    robot.v_wheel_r -= v
-                if pressed_keys[pygame.K_g]:
-                    robot.v_wheel_l -= v
-                    robot.v_wheel_r -= v
-                if pressed_keys[pygame.K_x]:
-                    robot.v_wheel_l = 0
-                    robot.v_wheel_r = 0
+            # if (robot.v_wheel_l + robot.v_wheel_r) / 2 < v_max:
+            #
+            #     if pressed_keys[pygame.K_w]:
+            #         robot.v_wheel_l += v
+            #     if pressed_keys[pygame.K_o]:
+            #         robot.v_wheel_r += v
+            #     if pressed_keys[pygame.K_t]:
+            #         robot.v_wheel_l += v
+            #         robot.v_wheel_r += v
+            #     if pressed_keys[pygame.K_x]:
+            #         robot.v_wheel_l = 0
+            #         robot.v_wheel_r = 0
+            #
+            # if (robot.v_wheel_l + robot.v_wheel_r) / 2 > - v_max:
+            #     if pressed_keys[pygame.K_s]:
+            #         robot.v_wheel_l -= v
+            #     if pressed_keys[pygame.K_l]:
+            #         robot.v_wheel_r -= v
+            #     if pressed_keys[pygame.K_g]:
+            #         robot.v_wheel_l -= v
+            #         robot.v_wheel_r -= v
+            #     if pressed_keys[pygame.K_x]:
+            #         robot.v_wheel_l = 0
+            #         robot.v_wheel_r = 0
 
             # update screen by providing timer-event
             if event.type == timer_event:
@@ -323,7 +326,7 @@ if __name__ == '__main__':
                 draw_robot_way(robot)
 
                 # TODO
-                # draw_kalman_filter_way(kalman_filter)
+                draw_kalman_filter_way(kalman_filter)
 
                 draw_robot(screen, robot, robot_color, sensor_d, draw_sensors=False)
 

@@ -83,4 +83,4 @@ class KalmanFilter:
         self.mu = mu
         self.Sigma = Sigma
 
-        self.positions.append((mu[0], mu[1]))
+        self.positions.append((mu[0][0], mu[1][0]))
