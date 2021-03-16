@@ -4,6 +4,7 @@ import math
 import numpy as np
 from shapely.geometry import Point
 from robot import Robot
+from kalman_filter import KalmanFilter
 
 
 def draw_walls(screen, walls, wall_thickness, wall_color):
@@ -118,6 +119,19 @@ def draw_robot_way(robot):
                          end_pos=(robot_positions[start + 1][0], robot_positions[start + 1][1]))
 
 
+def draw_kalman_filter_way(kalman_filter):
+    kalman_filter_positions = kalman_filter.positions
+
+    # TODO: dashed line
+    for start in range(len(kalman_filter_positions) - 1):
+        # draw_dashed_line(screen, color=(0, 0, 0),
+        #                  start_pos=(kalman_filter_positions[start][0], kalman_filter_positions[start][1]),
+        #                  end_pos=(kalman_filter_positions[start + 1][0], kalman_filter_positions[start + 1][1]))
+        pygame.draw.line(surface=screen, color=(0, 0, 0), width=2,
+                         start_pos=(kalman_filter_positions[start][0], kalman_filter_positions[start][1]),
+                         end_pos=(kalman_filter_positions[start + 1][0], kalman_filter_positions[start + 1][1]))
+
+
 def init_walls_coordinates(env_width, env_height, wall_length):
     # wall frame distance
     dist_l_r = (env_width - wall_length) / 2  # distance to frame, left and right
@@ -191,6 +205,9 @@ if __name__ == '__main__':
     max_sensor_reach = 2 * radius
     robot_color = (153, 204, 255)
     robot = Robot(x, y, radius, num_sensors, max_sensor_reach)
+    delta_t = 0.1
+
+    kalman_filter = KalmanFilter(robot.x, robot.y, 0, (robot.v_wheel_l + robot.v_wheel_r) / 2, robot.omega)
 
     # environment
     walls = init_walls_coordinates(env_width, env_height, wall_length)
@@ -282,7 +299,10 @@ if __name__ == '__main__':
             # update screen by providing timer-event
             if event.type == timer_event:
                 # update robot position with delta_t = 0.1
-                robot.set_new_position(0.1)
+                robot.set_new_position(delta_t)
+
+                # update kalman filter
+                kalman_filter.kalman_filter_call((robot.v_wheel_l + robot.v_wheel_r) / 2, robot.omega, delta_t)
 
                 # check for collision
                 robot.robot_is_crossing_wall(walls)
@@ -301,7 +321,12 @@ if __name__ == '__main__':
                 # for testing of sensor circle and visibility of landmarks
                 # pygame.draw.circle(surface=screen, color=(0, 158, 0), center=(robot.x, robot.y), radius=robot.max_sensor_reach+robot.radius, width=2)
                 draw_robot_way(robot)
+
+                # TODO
+                # draw_kalman_filter_way(kalman_filter)
+
                 draw_robot(screen, robot, robot_color, sensor_d, draw_sensors=False)
+
                 draw_landmarks(screen, landmarks, visible_landmarks, robot)
 
                 # update
