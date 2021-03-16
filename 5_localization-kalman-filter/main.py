@@ -183,6 +183,7 @@ if __name__ == '__main__':
     # robot
     x = env_width / 2
     y = env_height / 2
+    o = 0.1  # TODO
     v = 0.5
     v_max = 15
     radius = env_width / 20
@@ -219,6 +220,39 @@ if __name__ == '__main__':
                 sys.exit()
 
             pressed_keys = pygame.key.get_pressed()
+
+            # TODO control robot with the following keys
+            """
+            W -> increment v
+            S -> decrement v 
+            D -> increment omega
+            A -> decrement omega
+            X -> stop (stays the same)
+            """
+
+            # if (robot.v_wheel_l + robot.v_wheel_r) / 2 < v_max:
+            if pressed_keys[pygame.K_w]:
+                if (robot.v_wheel_l + robot.v_wheel_r) / 2 < v_max:
+                    # increase velocity
+                    robot.v_wheel_l += v/2
+                    robot.v_wheel_r += v/2
+
+            if pressed_keys[pygame.K_s]:
+                if (robot.v_wheel_l + robot.v_wheel_r) / 2 > -v_max:
+                    # decrease velocity
+                    robot.v_wheel_l -= v/2
+                    robot.v_wheel_r -= v/2
+
+            if pressed_keys[pygame.K_d]:
+                # increase omega (rotation)
+                robot.omega += o
+            if pressed_keys[pygame.K_a]:
+                # decrease omega (rotation)
+                robot.omega -= o
+
+            if pressed_keys[pygame.K_x]:
+                # stop
+                robot.v = 0
 
             if (robot.v_wheel_l + robot.v_wheel_r) / 2 < v_max:
 

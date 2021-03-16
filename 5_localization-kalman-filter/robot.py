@@ -19,6 +19,7 @@ class Robot:
 
         self.v_wheel_l = 0
         self.v_wheel_r = 0
+        self.omega = 0
 
         self.num_sensors = num_sensors
         self.max_sensor_reach = max_sensor_reach
@@ -28,6 +29,7 @@ class Robot:
         # omni-directional sensor
         center_point = Point(self.x, self.y)
         self.sensor_circle = center_point.buffer(self.radius + self.max_sensor_reach)
+
 
     def init_sensors(self):
         self.update_sensors()
