@@ -20,6 +20,9 @@ class Robot:
         self.v_wheel_l = 0
         self.v_wheel_r = 0
 
+        #self.v = (self.v_wheel_l + self.v_wheel_r)/2
+        self.omega = 0
+
         self.num_sensors = num_sensors
         self.max_sensor_reach = max_sensor_reach
         self.sensor_list = []
@@ -128,13 +131,13 @@ class Robot:
         self.y_prev = self.y
 
         # # calculate angular velocity: omega
-        omega = (self.v_wheel_l - self.v_wheel_r) / 2
+        self.omega = (self.v_wheel_l - self.v_wheel_r) / 2
 
         # # calculate distance to ICC: R
-        if self.v_wheel_l != self.v_wheel_r:
-            R = self.radius * (self.v_wheel_l + self.v_wheel_r) / (self.v_wheel_l - self.v_wheel_r)
-        else:
-            R = 100
+        # if self.v_wheel_l != self.v_wheel_r:
+        #     R = self.radius * (self.v_wheel_l + self.v_wheel_r) / (self.v_wheel_l - self.v_wheel_r)
+        # else:
+        #     R = 100
 
         # # calculate angle of robot relative to x-axis (horizontal axis): Theta
         # vector_1 pointing in the direction of the x axis, vector_2 in the direction of the robot
@@ -150,36 +153,52 @@ class Robot:
         Theta = np.arctan2(det, dot)
 
         # # calculate ICC
-        ICCx = self.x - R * np.sin(Theta)
-        ICCy = self.y + R * np.cos(Theta)
+        # ICCx = self.x - R * np.sin(Theta)
+        # ICCy = self.y + R * np.cos(Theta)
 
         # # equation (5) slide 19
         # matrix 1
-        m1 = np.array([[np.cos(omega * delta_t), - np.sin(omega * delta_t), 0],
-                       [np.sin(omega * delta_t), np.cos(omega * delta_t), 0],
-                       [0, 0, 1]
-                       ])
-        # matrix 2
-        m2 = np.array([[self.x - ICCx],
-                       [self.y - ICCy],
+        # m1 = np.array([[np.cos(omega * delta_t), - np.sin(omega * delta_t), 0],
+        #                [np.sin(omega * delta_t), np.cos(omega * delta_t), 0],
+        #                [0, 0, 1]
+        #                ])
+        # # matrix 2
+        # m2 = np.array([[self.x - ICCx],
+        #                [self.y - ICCy],
+        #                [Theta]
+        #                ])
+        # # matrix 3
+        # m3 = np.array([[ICCx],
+        #                [ICCy],
+        #                [omega * delta_t]
+        #                ])
+        # the multiplication and addition: The output is [x' y' Theta']
+        # if (self.v_wheel_l != self.v_wheel_r):
+        #     new = np.matmul(m1, m2) + m3
+        #
+        # else:
+        #     new = np.array([[self.x + self.v_wheel_l * np.cos(Theta)],
+        #                     [self.y + self.v_wheel_l * np.sin(Theta)],
+        #                     [Theta]
+        #                     ])
+
+        m1 = np.array([[self.x],
+                       [self.y],
                        [Theta]
                        ])
-        # matrix 3
-        m3 = np.array([[ICCx],
-                       [ICCy],
-                       [omega * delta_t]
+
+        m2 = np.array([[delta_t * np.cos(Theta), 0],
+                       [delta_t * np.sin(Theta), 0],
+                       [0, delta_t]
                        ])
-        # the multiplication and addition: The output is [x' y' Theta']
-        if (self.v_wheel_l != self.v_wheel_r):
-            new = np.matmul(m1, m2) + m3
 
-        else:
-            new = np.array([[self.x + self.v_wheel_l * np.cos(Theta)],
-                            [self.y + self.v_wheel_l * np.sin(Theta)],
-                            [Theta]
-                            ])
+        m3 = np.array([(self.v_wheel_l + self.v_wheel_r) / 2,
+                       self.omega,
+                       ])
 
-        # # updating the x and the y coordinate of the robot
+        new = m1 + np.matmul(m2, m3)
+
+        # updating the x and the y coordinate of the robot
         self.x = new[0][0]
         self.y = new[1][0]
 

@@ -1,70 +1,86 @@
 import numpy as np
 import math
 
+class KalmanFilter:
+    def __init__(self, x, y, Theta, v, omega):
+        # slide 9
+        self.mu = np.array([[x],
+                            [y],
+                            [Theta]])
 
-def call_kalman_filter(x, y, Theta, v, omega, delta_t):
-    # slide 9
-    mu = np.array([[x],
-                   [y],
-                   [Theta]])
+        # slide 9 # Robot sure about starting point (TODO maybe make random)
+        self. Sigma = np.array([[0.0001, 0, 0],
+                                [0, 0.0003, 0],
+                                [0, 0, 0.0002]])
 
-    # slide 9 # TODO
-    Sigma = np.array([[1, 0, 0],
+        self.positions = [(x, y)]
+
+        # slide 15
+        u = np.array([[v],
+                      [omega]])
+
+        # slide 26, TODO delta entspricht Q
+        delta = np.array([[0],
+                          [0],
+                          [0]])
+        z = self.mu + delta
+
+        #new_mu, new_Sigma = kalman_filter(mu, Sigma, u, z, delta_t)
+
+    def kalman_filter_call(self, v, omega, delta_t):
+        u = np.array([[v],
+                      [omega]])
+
+        delta = np.array([[0],
+                          [0],
+                          [0]])
+        z = self.mu + delta
+
+        self.kalman_filter_update(self.mu, self.Sigma, u, z, delta_t)
+
+
+    def kalman_filter_update(self, mu, Sigma, u, z, delta_t):
+        # slide 15
+        A = np.array([[1, 0, 0],
                       [0, 1, 0],
                       [0, 0, 1]])
 
-    # slide 15
-    u = np.array([[v],
-                  [omega]])
+        # slide 15
+        B = np.array([[delta_t * math.cos(mu[2]), 0],
+                      [delta_t * math.cos(mu[2]), 0],
+                      [0, delta_t]])
 
-    # slide 26, TODO delta entspricht Q
-    delta = np.array([[0],
-                      [0],
-                      [0]])
-    z = mu + delta
+        # slide 16 # TODO
+        R = np.array([[0.1, 0, 0],
+                      [0, 0.2, 0],
+                      [0, 0, 0.1]])
 
-    new_mu, new_Sigma = kalman_filter(mu, Sigma, u, z, delta_t)
+        # slide 26
+        C = np.array([[1, 0, 0],
+                      [0, 1, 0],
+                      [0, 0, 1]])
 
+        # slide 27 # TODO
+        Q = np.array([[0.2, 0, 0],
+                      [0, 0.1, 0],
+                      [0, 0, 0.2]])
 
-def kalman_filter(mu, Sigma, u, z, delta_t):
-    # slide 15
-    A = np.array([[1, 0, 0],
-                  [0, 1, 0],
-                  [0, 0, 1]])
+        I = np.array([[1, 0, 0],
+                      [0, 1, 0],
+                      [0, 0, 1]])
 
-    # slide 15
-    B = np.array([[delta_t * math.cos(mu[2]), 0],
-                  [delta_t * math.cos(mu[2]), 0],
-                  [0, delta_t]])
+        # prediction
+        mu_estimate = np.matmul(A, mu) + np.matmul(B, u)
+        Sigma_estimate = np.matmul(np.matmul(A, Sigma), A.transpose()) + R
 
-    # slide 16 # TODO
-    R = np.array([[1, 0, 0],
-                  [0, 1, 0],
-                  [0, 0, 1]])
+        # correction
+        K = np.matmul(np.matmul(Sigma_estimate, C.transpose()),
+                      np.linalg.inv(np.matmul(np.matmul(C, Sigma_estimate), C.transpose()) + Q))
 
-    # slide 26
-    C = np.array([[1, 0, 0],
-                  [0, 1, 0],
-                  [0, 0, 1]])
+        mu = mu_estimate + np.matmul(K, (z - np.matmul(C, mu_estimate)))
+        Sigma = np.matmul((I - np.matmul(K, C)), Sigma_estimate)
 
-    # slide 27 # TODO
-    Q = np.array([[1, 0, 0],
-                  [0, 1, 0],
-                  [0, 0, 1]])
+        self.mu = mu
+        self.Sigma = Sigma
 
-    I = np.array([[1, 0, 0],
-                  [0, 1, 0],
-                  [0, 0, 1]])
-
-    # prediction
-    mu_estimate = np.matmul(A, mu) + np.matmul(B, u)
-    Sigma_estimate = np.matmul(np.matmul(A * Sigma) * A.transpose()) + R
-
-    # correction
-    K = np.matmul(np.matmul(Sigma_estimate, C.transpose()),
-                  np.linalg.inv(np.matmul(np.matmul(C, Sigma_estimate), C.transpose()) + Q))
-
-    mu = mu_estimate + K(z - np.matmul(C, mu_estimate))
-    Sigma = np.matmul((I - np.matmul(K, C)), Sigma_estimate)
-
-    return mu, Sigma
+        self.positions.append((mu[0], mu[1]))
