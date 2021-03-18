@@ -315,6 +315,7 @@ if __name__ == '__main__':
                 sensor_d = robot.get_sensor_distance_values(walls)
 
                 visible_landmarks = robot.check_landmarks_in_sight(landmarks)
+                # robot.triangulation(visible_landmarks)
 
                 # clear screen
                 screen.fill((255, 255, 255))

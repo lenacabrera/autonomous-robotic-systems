@@ -23,6 +23,11 @@ DONE - draw path / trajectory (solid line) -> for line, connect all robot positi
 - Velocity-based motion model robot,
   Control robot with key board (W=increment 𝑣, S=decrement 𝑣, A=decrement 𝜔, D=increment 𝜔, X=stop)
 
+Additional TODO
+- position estimate: triangulation with visible landmarks, if several take average (assume no bearing info -> use 3 landmarks)
+    -> measure distances, add noise afterwards to mimic sensor noise
+    -> z is estimation of position based on sensor info/distances
+
 
 - later/after filter: draw path / dotted line and ellipsis
 

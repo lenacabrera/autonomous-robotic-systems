@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from shapely.geometry import Point
 
 class KalmanFilter:
     def __init__(self, x, y, Theta, v, omega):
@@ -9,7 +10,7 @@ class KalmanFilter:
                             [Theta]])
 
         # slide 9 # Robot sure about starting point (TODO maybe make random)
-        self. Sigma = np.array([[0.0001, 0, 0],
+        self.Sigma = np.array([[0.0001, 0, 0],
                                 [0, 0.0003, 0],
                                 [0, 0, 0.0002]])
 
@@ -20,6 +21,7 @@ class KalmanFilter:
                       [omega]])
 
         # slide 26, TODO delta entspricht Q
+        # z is estimation of position based on sensor info/distances
         delta = np.array([[0],
                           [0],
                           [0]])
@@ -84,3 +86,38 @@ class KalmanFilter:
         self.Sigma = Sigma
 
         self.positions.append((mu[0][0], mu[1][0]))
+
+
+    def estimate_z(self, visible_landmarks, distances, bearing):
+        """"
+        1. new position (x, y) estimate
+        a. calculate distances to visible landmarks
+        b. per landmark take coordinates and distance for triangulation
+
+        2. new orientation (theta) estimate
+        a. calculate bearing of one landmark
+        b. update orientation according
+
+        3. create z from 1. and 2.
+        """
+        # 1. new position (x, y) estimate
+        circles = []
+        if len(visible_landmarks) == 3:
+            for i, visible_landmark in enumerate(visible_landmarks):
+                circles.append(visible_landmark.buffer(distances[i]))
+
+            # find intersections of first and second circle
+            intersections = circles[0].intersection(circles[1]) # two points
+            # find intersection with third circle
+            for point in intersections:
+                intersection = point.intersection(circles[2])
+                if not intersection.is_empty:
+                    new_position = intersection
+
+
+
+
+        else:
+            # TODO
+            pass
+

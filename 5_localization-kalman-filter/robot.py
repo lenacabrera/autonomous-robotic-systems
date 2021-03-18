@@ -1,6 +1,7 @@
 import numpy as np
 import math
 from shapely.geometry import LineString, Point
+from scipy.spatial import Delaunay  # triangulation
 
 
 class Robot:
@@ -101,6 +102,17 @@ class Robot:
 
         return visible_landmarks
 
+    # def triangulation(self, visible_landmarks):
+    #     if len(visible_landmarks) >= 3:  # TODO >= ?
+    #         points = np.zeros((len(visible_landmarks), 2))  # 2 dimensionality of position (x and y)
+    #         for i_visible_landmark, visible_landmark in enumerate(visible_landmarks):
+    #             points[i_visible_landmark][0] = visible_landmarks[i_visible_landmark].x
+    #             points[i_visible_landmark][1] = visible_landmarks[i_visible_landmark].y
+    #
+    #         tri = Delaunay(points)
+    #         center = points.mean(axis=0)
+    #         print(center = points.mean(axis=0))
+    #         # print(tri.simplices)
 
     def get_sensor_distance_values(self, walls):
         distance_values = []
