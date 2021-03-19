@@ -109,6 +109,15 @@ def draw_robot(screen, robot, robot_color, distance_values, draw_sensors=False):
     screen.blit(textsurface, (robot.x + np.cos(robot.line_angle + 3 * math.pi / 2) * robot.radius / 2,
                               robot.y + np.sin(robot.line_angle + 3 * math.pi / 2) * robot.radius / 2))
 
+def draw_uncertainty_bubbles(screen, kalman_filter):
+    width = kalman_filter.Sigma_estimate[0][0]
+    print(width)
+    height = kalman_filter.Sigma_estimate[1][1]
+    print(height)
+    x = kalman_filter.mu[0][0]
+    y = kalman_filter.mu[1][0]
+    pygame.draw.ellipse(surface=screen, color=(0, 0, 0), rect=(x, y, width * 10, height * 10))
+
 
 def draw_robot_way(robot):
     robot_positions = robot.positions
@@ -275,31 +284,6 @@ if __name__ == '__main__':
                 robot.v_wheel_r = 0
                 robot.omega = 0
 
-            # if (robot.v_wheel_l + robot.v_wheel_r) / 2 < v_max:
-            #
-            #     if pressed_keys[pygame.K_w]:
-            #         robot.v_wheel_l += v
-            #     if pressed_keys[pygame.K_o]:
-            #         robot.v_wheel_r += v
-            #     if pressed_keys[pygame.K_t]:
-            #         robot.v_wheel_l += v
-            #         robot.v_wheel_r += v
-            #     if pressed_keys[pygame.K_x]:
-            #         robot.v_wheel_l = 0
-            #         robot.v_wheel_r = 0
-            #
-            # if (robot.v_wheel_l + robot.v_wheel_r) / 2 > - v_max:
-            #     if pressed_keys[pygame.K_s]:
-            #         robot.v_wheel_l -= v
-            #     if pressed_keys[pygame.K_l]:
-            #         robot.v_wheel_r -= v
-            #     if pressed_keys[pygame.K_g]:
-            #         robot.v_wheel_l -= v
-            #         robot.v_wheel_r -= v
-            #     if pressed_keys[pygame.K_x]:
-            #         robot.v_wheel_l = 0
-            #         robot.v_wheel_r = 0
-
             # update screen by providing timer-event
             if event.type == timer_event:
                 # update robot position with delta_t = 0.1
@@ -313,7 +297,6 @@ if __name__ == '__main__':
                 sensor_d = robot.get_sensor_distance_values(walls)
 
                 visible_landmarks, distances, bearings = robot.check_landmarks_in_sight(landmarks)
-                print(distances)
 
                 # update kalman filter
                 kalman_filter.kalman_filter_call((robot.v_wheel_l + robot.v_wheel_r) / 2, robot.omega, delta_t,
@@ -328,10 +311,11 @@ if __name__ == '__main__':
                 # pygame.draw.circle(surface=screen, color=(0, 158, 0), center=(robot.x, robot.y), radius=robot.max_sensor_reach+robot.radius, width=2)
                 draw_robot_way(robot)
 
-                # TODO
                 draw_kalman_filter_way(kalman_filter)
 
                 draw_robot(screen, robot, robot_color, sensor_d, draw_sensors=False)
+
+                draw_uncertainty_bubbles(screen, kalman_filter)
 
                 draw_landmarks(screen, landmarks, visible_landmarks, robot)
 
