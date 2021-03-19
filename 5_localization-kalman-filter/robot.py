@@ -29,7 +29,7 @@ class Robot:
 
         # omni-directional sensor
         center_point = Point(self.x, self.y)
-        self.sensor_circle = center_point.buffer(self.radius + self.max_sensor_reach)
+        self.sensor_circle = center_point.buffer(self.max_sensor_reach + self.radius)
 
 
     def init_sensors(self):
@@ -94,13 +94,17 @@ class Robot:
 
     def check_landmarks_in_sight(self, landmarks):
         # check which landmarks are in sight of robot
-
         visible_landmarks = []
+        distances = []
+        bearings = []
         for landmark in landmarks:
             if not self.sensor_circle.intersection(landmark).is_empty:
+                # TODO what if landmark 'ínside' robot body/circle
                 visible_landmarks.append(landmark)
+                distances.append(LineString([(self.x, self.y), (landmark.x, landmark.y)]).length)
+                bearings.append(math.atan2((landmark.y - self.y), (landmark.x - self.x)))
 
-        return visible_landmarks
+        return visible_landmarks, distances, bearings
 
     # def triangulation(self, visible_landmarks):
     #     if len(visible_landmarks) >= 3:  # TODO >= ?
@@ -211,9 +215,6 @@ class Robot:
                        ])
 
         new = m1 + np.matmul(m2, m3)
-
-
-
 
         # updating the x and the y coordinate of the robot
         self.x = new[0][0]

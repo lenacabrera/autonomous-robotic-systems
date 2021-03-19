@@ -273,6 +273,7 @@ if __name__ == '__main__':
                 # stop
                 robot.v_wheel_l = 0
                 robot.v_wheel_r = 0
+                robot.omega = 0
 
             # if (robot.v_wheel_l + robot.v_wheel_r) / 2 < v_max:
             #
@@ -304,9 +305,6 @@ if __name__ == '__main__':
                 # update robot position with delta_t = 0.1
                 robot.set_new_position(delta_t)
 
-                # update kalman filter
-                kalman_filter.kalman_filter_call((robot.v_wheel_l + robot.v_wheel_r) / 2, robot.omega, delta_t)
-
                 # check for collision
                 robot.robot_is_crossing_wall(walls)
 
@@ -314,8 +312,12 @@ if __name__ == '__main__':
                 robot.update_sensors()
                 sensor_d = robot.get_sensor_distance_values(walls)
 
-                visible_landmarks = robot.check_landmarks_in_sight(landmarks)
-                # robot.triangulation(visible_landmarks)
+                visible_landmarks, distances, bearings = robot.check_landmarks_in_sight(landmarks)
+                print(distances)
+
+                # update kalman filter
+                kalman_filter.kalman_filter_call((robot.v_wheel_l + robot.v_wheel_r) / 2, robot.omega, delta_t,
+                                                 visible_landmarks, distances, bearings)
 
                 # clear screen
                 screen.fill((255, 255, 255))
