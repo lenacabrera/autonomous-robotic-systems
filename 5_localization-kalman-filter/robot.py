@@ -20,7 +20,7 @@ class Robot:
 
         self.v_wheel_l = 0
         self.v_wheel_r = 0
-        self.omega = (self.v_wheel_l - self.v_wheel_r) / 2  # TODO check intializ.
+        self.omega = 0 #'(self.v_wheel_l - self.v_wheel_r) / 2  # TODO check intializ.
 
         # sensors
         self.num_sensors = num_sensors
@@ -102,7 +102,11 @@ class Robot:
                 # TODO what if landmark 'ínside' robot body/circle
                 visible_landmarks.append(landmark)
                 distances.append(LineString([(self.x, self.y), (landmark.x, landmark.y)]).length)
-                bearings.append(math.atan2((landmark.y - self.y), (landmark.x - self.x)))
+                # bearings.append(math.atan2((landmark.y - self.y), (landmark.x - self.x)))
+                radian_r_l = math.atan2((landmark.y - self.orientation[1]), (landmark.x - self.orientation[0]))
+                radian_l_env = math.atan2((landmark.y - 0), (landmark.x - 1))
+                bearing = radian_r_l + radian_l_env
+                bearings.append(bearing)
 
         return visible_landmarks, distances, bearings
 

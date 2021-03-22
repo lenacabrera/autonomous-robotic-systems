@@ -175,12 +175,14 @@ def init_landmarks(env_width, env_height, wall_length):
     f = 0.17 * wall_length
     positions = [
         (room_l + 1.2 * f, room_t + 1.5 * f),
+        (room_l + 2.5 * f, room_t + 1.4 * f),
         (room_l + 2.5 * f, room_t + 3.4 * f),
-        (room_l + 4.3 * f, room_t + 2.9 * f),
+        (room_l + 4.7 * f, room_t + 2.9 * f),
         (room_l + 5.3 * f, room_t + 3.9 * f),
-        (room_l + 4.8 * f, room_t + 5.0 * f),
-        (room_l + 3.9 * f, room_t + 3.7 * f),
-
+        (room_l + 4.8 * f, room_t + 5.1 * f),
+        (room_l + 3.7 * f, room_t + 3.9 * f),
+        (room_l + 2.8 * f, room_t + 2.4 * f),
+        (room_l + 1.8 * f, room_t + 4.9 * f),
     ]
 
     landmarks = []
@@ -199,8 +201,8 @@ if __name__ == '__main__':
     wall_color = (204, 0, 102)
 
     # robot
-    x = env_width / 3
-    y = env_height / 2
+    x = 150
+    y = 150
     o = 0.05
     v = 1
     v_max = 15
@@ -213,8 +215,7 @@ if __name__ == '__main__':
 
     kalman_filter = KalmanFilter(x=robot.x,
                                  y=robot.y,
-                                 Theta=0,
-                                 delta_t=delta_t)
+                                 Theta=0)
 
     # environment
     walls = init_walls_coordinates(env_width, env_height, wall_length)
@@ -291,15 +292,18 @@ if __name__ == '__main__':
                 sensor_d = robot.get_sensor_distance_values(walls)
                 visible_landmarks, distances, bearings = robot.check_landmarks_in_sight(landmarks)
 
-                if len(visible_landmarks) != 3:
-                    # TODO check if robot moved
-                    increased_uncertainty += 1
-                else:
-                    increased_uncertainty = 0
+                # check if robot is moving
+                if (robot.v_wheel_l + robot.v_wheel_r) / 2 != 0:
+                    if len(visible_landmarks) != 3:
+                            increased_uncertainty += 1
+                    else:
+                        # no uncertainty increase if 3 landmarks are visible
+                        increased_uncertainty = 0
 
-                # update kalman filter
-                kalman_filter.kalman_filter_update((robot.v_wheel_l + robot.v_wheel_r) / 2, robot.omega,
-                                                   visible_landmarks, distances, bearings, increased_uncertainty)
+                if (robot.v_wheel_l + robot.v_wheel_r) / 2 != 0:
+                    # update kalman filter
+                    kalman_filter.kalman_filter_update((robot.v_wheel_l + robot.v_wheel_r) / 2, robot.omega, delta_t,
+                                                       visible_landmarks, distances, bearings, increased_uncertainty)
 
                 # clear screen
                 screen.fill((255, 255, 255))

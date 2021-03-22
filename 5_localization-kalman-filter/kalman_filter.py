@@ -3,16 +3,14 @@ import math
 
 
 class KalmanFilter:
-    def __init__(self, x, y, Theta, delta_t):
-
-        # TODO: in beginning, should trajectory move if robot has not moved?
+    def __init__(self, x, y, Theta):
 
         # CONFIGURATION
         # randomly drawing from normal distribution (Gaussian)
         self.mean = 1  # 0.1
-        self.std_Sigma = 0.01  # 0.04
-        self.std_R = 0.01
-        self.std_Q = 0.01
+        self.std_Sigma = 0.07  # 0.04
+        self.std_R = 0.05
+        self.std_Q = 0.05
         self.std_z = 0.01
         self.uncertainty_growth = 0.1
 
@@ -31,11 +29,6 @@ class KalmanFilter:
         self.A = np.array([[1, 0, 0],
                            [0, 1, 0],
                            [0, 0, 1]])
-
-        # control transition matrix
-        self.B = np.array([[delta_t * math.cos(self.mu[2]), 0],
-                           [delta_t * math.cos(self.mu[2]), 0],
-                           [0, delta_t]])
 
         # process noise (Gaussian)
         self.R = np.array([[np.random.normal(self.mean, self.std_R), 0, 0],
@@ -63,7 +56,7 @@ class KalmanFilter:
         # belief trajectory
         self.positions = [(x, y)]
 
-    def kalman_filter_update(self, v, omega, visible_landmarks, distances, bearings, increased_uncertainty):
+    def kalman_filter_update(self, v, omega, delta_t, visible_landmarks, distances, bearings, increased_uncertainty):
 
         # linearly growing uncertainty when not three landmarks visible
         add_uncertainty = self.uncertainty_growth * increased_uncertainty
@@ -71,23 +64,32 @@ class KalmanFilter:
                                                      [0, add_uncertainty, 0],
                                                      [0, 0, add_uncertainty]]))
 
+        # control transition matrix
+        B = np.array([[delta_t * math.cos(self.mu[2]), 0],
+                      [delta_t * math.sin(self.mu[2]), 0],
+                      [delta_t, 1]])
+
         # control vector
         u = np.array([[v],
                       [omega]])
+        # print(omega)
 
         """ Prediction """
         # state transition to get state estimate
-        mu_estimate = np.matmul(self.A, self.mu) + np.matmul(self.B, u)
+        mu_estimate = np.matmul(self.A, self.mu) + np.matmul(B, u)
+        # print(mu_estimate[0])
         # uncertainty introduced by state transition
         self.Sigma_estimate = np.matmul(np.matmul(self.A, self.Sigma), self.A.T) + self.R
 
         # measurement from sensors
-        z = self.estimate_z(mu_estimate, visible_landmarks, distances, bearings)
+        z = self.estimate_z(self.mu, visible_landmarks, distances, bearings)
 
         """ Correction """
         # Kalman gain -> degree to which measurement (z) is incorporated
         K = np.matmul(np.matmul(self.Sigma_estimate, self.C.T),
                       np.linalg.inv(np.matmul(np.matmul(self.C, self.Sigma_estimate), self.C.T) + self.Q))
+        # print(K)
+
         # update state
         self.mu = mu_estimate + np.matmul(K, (z - np.matmul(self.C, mu_estimate)))
         # update uncertainty
@@ -96,7 +98,7 @@ class KalmanFilter:
         # log positions to draw path trajectory
         self.positions.append((self.mu[0][0], self.mu[1][0]))
 
-    def estimate_z(self, mu_estimate, visible_landmarks, distances, bearings):
+    def estimate_z(self, mu, visible_landmarks, distances, bearings):
         """"
         1. new position (x, y) estimate
             a. trilateration to find intersection point of three circles (landmark position + distance)
@@ -134,9 +136,9 @@ class KalmanFilter:
             bearing = sum(bearings) / len(bearings)
 
         else:
-            x = mu_estimate[0][0]
-            y = mu_estimate[1][0]
-            bearing = mu_estimate[2][0]
+            x = mu[0][0]
+            y = mu[1][0]
+            bearing = mu[2][0]
 
         # add noise to mimic sensor noise
         x_noise = np.random.normal(self.mean, self.std_z)
