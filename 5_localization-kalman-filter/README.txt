@@ -29,6 +29,12 @@ Additional TODO
     -> z is estimation of position based on sensor info/distances
 
 
+- check position, when adding to uncertainty
+- add landmark
+- orientation
+- different experiments: check different values
+
+
 - later/after filter: draw path / dotted line and ellipsis
 
 - in the end, write about work distribution

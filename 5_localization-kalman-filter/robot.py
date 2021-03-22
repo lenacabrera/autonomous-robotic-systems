@@ -18,18 +18,18 @@ class Robot:
 
         self.positions = [(x, y)]
 
-        self.v_wheel_l = 0.5#0 TODO change to zero
-        self.v_wheel_r = 0.5#0 TODO
+        self.v_wheel_l = 0
+        self.v_wheel_r = 0
         self.omega = (self.v_wheel_l - self.v_wheel_r) / 2  # TODO check intializ.
 
+        # sensors
         self.num_sensors = num_sensors
         self.max_sensor_reach = max_sensor_reach
         self.sensor_list = []
         self.init_sensors()
 
         # omni-directional sensor
-        center_point = Point(self.x, self.y)
-        self.sensor_circle = center_point.buffer(self.max_sensor_reach + self.radius)
+        self.sensor_circle = Point(self.x, self.y).buffer(self.max_sensor_reach + self.radius)
 
 
     def init_sensors(self):
@@ -106,18 +106,6 @@ class Robot:
 
         return visible_landmarks, distances, bearings
 
-    # def triangulation(self, visible_landmarks):
-    #     if len(visible_landmarks) >= 3:  # TODO >= ?
-    #         points = np.zeros((len(visible_landmarks), 2))  # 2 dimensionality of position (x and y)
-    #         for i_visible_landmark, visible_landmark in enumerate(visible_landmarks):
-    #             points[i_visible_landmark][0] = visible_landmarks[i_visible_landmark].x
-    #             points[i_visible_landmark][1] = visible_landmarks[i_visible_landmark].y
-    #
-    #         tri = Delaunay(points)
-    #         center = points.mean(axis=0)
-    #         print(center = points.mean(axis=0))
-    #         # print(tri.simplices)
-
     def get_sensor_distance_values(self, walls):
         distance_values = []
         for i_sensor, (x_sensor, y_sensor) in enumerate(self.sensor_list):
@@ -148,12 +136,6 @@ class Robot:
         # # calculate angular velocity: omega
         # self.omega = (self.v_wheel_l - self.v_wheel_r) / 2
 
-        # # calculate distance to ICC: R
-        if self.v_wheel_l != self.v_wheel_r:
-            R = self.radius * (self.v_wheel_l + self.v_wheel_r) / (self.v_wheel_l - self.v_wheel_r)
-        else:
-            R = 100
-
         # # calculate angle of robot relative to x-axis (horizontal axis): Theta
         # vector_1 pointing in the direction of the x axis, vector_2 in the direction of the robot
         vector_1 = [1, 0]
@@ -166,39 +148,6 @@ class Robot:
         det = unit_vector_1[0] * unit_vector_2[1] - unit_vector_2[0] * unit_vector_1[1]
         # the angle Theta is calculated with arctan2 as angles between 0 and 360 degrees are needed
         Theta = np.arctan2(det, dot)
-
-        # # calculate ICC
-        # ICCx = self.x - R * np.sin(Theta)
-        # ICCy = self.y + R * np.cos(Theta)
-        #
-        # # equation (5) slide 19
-        # # matrix 1
-        # m1 = np.array([[np.cos(self.omega * delta_t), - np.sin(self.omega * delta_t), 0],
-        #                [np.sin(self.omega * delta_t), np.cos(self.omega * delta_t), 0],
-        #                [0, 0, 1]
-        #                ])
-        # # matrix 2
-        # m2 = np.array([[self.x - ICCx],
-        #                [self.y - ICCy],
-        #                [Theta]
-        #                ])
-        # # matrix 3
-        # m3 = np.array([[ICCx],
-        #                [ICCy],
-        #                [self.omega * delta_t]
-        #                ])
-        # # the multiplication and addition: The output is [x' y' Theta']
-        # if (self.v_wheel_l != self.v_wheel_r):
-        #     new = np.matmul(m1, m2) + m3
-        #
-        # else:
-        #     new = np.array([[self.x + self.v_wheel_l * np.cos(Theta)],
-        #                     [self.y + self.v_wheel_l * np.sin(Theta)],
-        #                     [Theta]
-        #                     ])
-
-
-
 
         m1 = np.array([[self.x],
                        [self.y],
@@ -220,12 +169,10 @@ class Robot:
         self.x = new[0][0]
         self.y = new[1][0]
 
-
         # # updating the orientation: the point on the border of the circle
         self.orientation = (self.x + np.cos(new[2][0]) * self.radius,
                             self.y + np.sin(new[2][0]) * self.radius)
 
         self.line_angle = new[2][0]
 
-        center_point = Point(self.x, self.y)
-        self.sensor_circle = center_point.buffer(self.radius + self.max_sensor_reach)
+        self.sensor_circle = Point(self.x, self.y).buffer(self.radius + self.max_sensor_reach)
