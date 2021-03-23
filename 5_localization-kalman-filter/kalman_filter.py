@@ -7,11 +7,11 @@ class KalmanFilter:
 
         # CONFIGURATION
         # randomly drawing from normal distribution (Gaussian)
-        self.mean = 1  # 0.1
-        self.std_Sigma = 0.01  # 0.04
-        self.std_R = 0.0#5
-        self.std_Q = 0.000001
-        self.std_z = 0.0#1
+        self.mean = 1
+        self.std_Sigma = 0.01
+        self.std_R = 0.7
+        self.std_Q = 0.3
+        self.std_z = 0.2
         self.uncertainty_growth = 0.1
 
         # state vector / robot belief
@@ -93,8 +93,6 @@ class KalmanFilter:
 
         # log positions to draw path trajectory
         self.positions.append((self.mu[0][0], self.mu[1][0]))
-        # self.mu[2][0] = omega
-        # print(self.mu)
 
     def estimate_z(self, visible_landmarks, distances, bearings, v, omega, mu_estimate, mu):
         """"
@@ -154,18 +152,14 @@ class KalmanFilter:
 
             new = m1 + np.matmul(m2, m3)
 
-            # updating the x and the y coordinate of the robot
-            x = new[0][0]
-            y = new[1][0]
-            # x = mu_estimate[0][0]
-            # y = mu_estimate[1][0]
+            x = mu_estimate[0][0]
+            y = mu_estimate[1][0]
             theta = new[2][0]
 
         # add noise to mimic sensor noise
         x_noise = np.random.normal(0, self.std_z)
         y_noise = np.random.normal(0, self.std_z)
         t_noise = np.random.normal(0, self.std_z)
-        print(t_noise)
         z = np.array([[x + x_noise],
                       [y + y_noise],
                       [theta + t_noise]])

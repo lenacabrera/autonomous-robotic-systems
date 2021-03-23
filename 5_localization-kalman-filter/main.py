@@ -110,7 +110,7 @@ def draw_uncertainty_bubbles(screen, kalman_filter, history, time_step):
     # height = kalman_filter.Sigma[1][1]
     x = kalman_filter.mu[0][0]
     y = kalman_filter.mu[1][0]
-    if time_step == 9:
+    if time_step == 29:
         history.append((x, y, abs(width) * 10, abs(height) * 10))
     for entry in history:
         pygame.draw.ellipse(surface=screen, color=(128, 128, 128), rect=(entry[0], entry[1], entry[2], entry[3]), width=2)
@@ -129,12 +129,7 @@ def draw_robot_way(robot):
 def draw_kalman_filter_way(kalman_filter):
     kalman_filter_positions = kalman_filter.positions
 
-    # TODO: dashed line
     for start in range(len(kalman_filter_positions) - 1):
-        # draw_dashed_line(screen, color=(255,127,80),
-        #                  start_pos=(kalman_filter_positions[start][0], kalman_filter_positions[start][1]),
-        #                  end_pos=(kalman_filter_positions[start + 1][0], kalman_filter_positions[start + 1][1]))
-
         pygame.draw.line(surface=screen, color=(255, 127, 80), width=2,
                          start_pos=(kalman_filter_positions[start][0], kalman_filter_positions[start][1]),
                          end_pos=(kalman_filter_positions[start + 1][0], kalman_filter_positions[start + 1][1]))
@@ -237,7 +232,7 @@ if __name__ == '__main__':
 
     # initialize timer in order to provide constant timer-events
     timer_event = pygame.USEREVENT + 1
-    time = 250  # TODO: fine-tuning
+    time = 250
     pygame.time.set_timer(timer_event, time)
 
     # run animation
@@ -326,5 +321,5 @@ if __name__ == '__main__':
                 # update
                 pygame.display.update()
                 time_step += 1
-                if time_step == 10:
+                if time_step == 30:
                     time_step = 0

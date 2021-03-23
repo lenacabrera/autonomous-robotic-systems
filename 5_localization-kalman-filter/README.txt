@@ -1,40 +1,13 @@
+Self-localization wit Kalman Filter
+(This program was jointly programmed by Kathrin Hartmann and Lena Cabrera)
 
+Use of program:
 
-TODO
-Lena
-DONE - beacon -> tuple / array?
-DONE - change spider robot to bubble robot (omnidirectional sensor instead of sensors at certain angles)
-DONE - check intersection robot sensor with landmark / beacon, add green line between robot and feature
-
-Kathrin
-DONE - draw path / trajectory (solid line) -> for line, connect all robot positions
-- robot control -> kalman filter
-    - initialize matrices
-        - A is identity matrix I, A_t = I -> State transitions
-        - B           -> Actions
-        - C           -> Sensor model, map state to observation, C_t = I (always)
-        - Sigma       -> Initially set to zeros?
-        - R / Epsilon -> Motion Noise
-        - Q / delta   -> Sensor Noise
-    - prediction part
-    - correction part
-- initialize covariance matrices (Sigma, R, Q) -> recording ?!
-
-- Velocity-based motion model robot,
-  Control robot with key board (W=increment 𝑣, S=decrement 𝑣, A=decrement 𝜔, D=increment 𝜔, X=stop)
-
-Additional TODO
-- position estimate: triangulation with visible landmarks, if several take average (assume no bearing info -> use 3 landmarks)
-    -> measure distances, add noise afterwards to mimic sensor noise
-    -> z is estimation of position based on sensor info/distances
-
-
-- check position, when adding to uncertainty
-- add landmark
-- orientation
-- different experiments: check different values
-
-
-- later/after filter: draw path / dotted line and ellipsis
-
-- in the end, write about work distribution
+1. Configure the settings of the Kalman Filter (e.g. range of normal distribution from which process noise and sensor noise are drawn) in kalman_filter.py file (init)
+2. Run the main function in main.py
+3. Navigate the robot through the environment the following keys
+    W -> increment velocity
+    S -> decrement velocity
+    D -> increment rotation
+    A -> decrement rotation
+    X -> stop (set velocity to zero and keep current orientation)

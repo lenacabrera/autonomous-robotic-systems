@@ -99,13 +99,11 @@ class Robot:
         bearings = []
         for landmark in landmarks:
             if not self.sensor_circle.intersection(landmark).is_empty:
-                # TODO what if landmark 'ínside' robot body/circle
                 visible_landmarks.append(landmark)
                 distances.append(LineString([(self.x, self.y), (landmark.x, landmark.y)]).length)
-                # bearings.append(math.atan2((landmark.y - self.y), (landmark.x - self.x)))
                 radian_r_l = math.atan2((landmark.y - self.orientation[1]), (landmark.x - self.orientation[0]))
                 radian_l_env = math.atan2((landmark.y - 0), (landmark.x - 1))
-                bearing = radian_l_env - radian_r_l #radian_r_l + radian_l_env
+                bearing = radian_l_env - radian_r_l
                 bearings.append(bearing)
 
         return visible_landmarks, distances, bearings
