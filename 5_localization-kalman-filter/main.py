@@ -103,15 +103,19 @@ def draw_robot(screen, robot, robot_color, distance_values, draw_sensors=False):
                               robot.y + np.sin(robot.line_angle + 3 * math.pi / 2) * robot.radius / 2))
 
 
-def draw_uncertainty_bubbles(screen, kalman_filter):
+def draw_uncertainty_bubbles(screen, kalman_filter, history, time_step):
     width = kalman_filter.Sigma_estimate[0][0]
     height = kalman_filter.Sigma_estimate[1][1]
     # width = kalman_filter.Sigma[0][0]
     # height = kalman_filter.Sigma[1][1]
     x = kalman_filter.mu[0][0]
     y = kalman_filter.mu[1][0]
-    pygame.draw.ellipse(surface=screen, color=(0, 0, 0), rect=(x, y, width * 10, height * 10), width=2)
+    if time_step == 9:
+        history.append((x, y, abs(width) * 10, abs(height) * 10))
+    for entry in history:
+        pygame.draw.ellipse(surface=screen, color=(128, 128, 128), rect=(entry[0], entry[1], entry[2], entry[3]), width=2)
 
+    return history
 
 def draw_robot_way(robot):
     robot_positions = robot.positions
@@ -175,6 +179,7 @@ def init_landmarks(env_width, env_height, wall_length):
     f = 0.17 * wall_length
     positions = [
         (room_l + 1.2 * f, room_t + 1.5 * f),
+        (room_l + 2.2 * f, room_t + 0.5 * f),
         (room_l + 2.5 * f, room_t + 1.4 * f),
         (room_l + 2.5 * f, room_t + 3.4 * f),
         (room_l + 4.7 * f, room_t + 2.9 * f),
@@ -237,6 +242,8 @@ if __name__ == '__main__':
 
     # run animation
     increased_uncertainty = 0
+    history_uncertainty = []
+    time_step = 0
     go = True
     while go:
         for event in pygame.event.get():
@@ -314,7 +321,10 @@ if __name__ == '__main__':
                 draw_robot(screen, robot, robot_color, sensor_d, draw_sensors=False)
                 draw_robot_way(robot)
                 draw_kalman_filter_way(kalman_filter)
-                draw_uncertainty_bubbles(screen, kalman_filter)
+                history_uncertainty = draw_uncertainty_bubbles(screen, kalman_filter, history_uncertainty, time_step)
 
                 # update
                 pygame.display.update()
+                time_step += 1
+                if time_step == 10:
+                    time_step = 0

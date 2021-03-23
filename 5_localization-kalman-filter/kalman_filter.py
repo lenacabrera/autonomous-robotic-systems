@@ -8,10 +8,10 @@ class KalmanFilter:
         # CONFIGURATION
         # randomly drawing from normal distribution (Gaussian)
         self.mean = 1  # 0.1
-        self.std_Sigma = 0.07  # 0.04
-        self.std_R = 0.05
-        self.std_Q = 0.05
-        self.std_z = 0.01
+        self.std_Sigma = 0.01  # 0.04
+        self.std_R = 0.0#5
+        self.std_Q = 0.000001
+        self.std_z = 0.0#1
         self.uncertainty_growth = 0.1
 
         # state vector / robot belief
@@ -20,9 +20,9 @@ class KalmanFilter:
                             [Theta]])
 
         # covariance / uncertainty about belief
-        self.Sigma = np.array([[np.random.normal(self.mean, self.std_Sigma), 0, 0],
-                               [0, np.random.normal(self.mean, self.std_Sigma), 0],
-                               [0, 0, np.random.normal(self.mean, self.std_Sigma)]])
+        self.Sigma = np.array([[np.random.normal(0, self.std_Sigma), 0, 0],
+                               [0, np.random.normal(0, self.std_Sigma), 0],
+                               [0, 0, np.random.normal(0, self.std_Sigma)]])
 
         """" Motion model """
         # state transition matrix
@@ -62,34 +62,30 @@ class KalmanFilter:
         add_uncertainty = self.uncertainty_growth * increased_uncertainty
         self.Sigma = np.matmul(self.Sigma, np.array([[add_uncertainty, 0, 0],
                                                      [0, add_uncertainty, 0],
-                                                     [0, 0, add_uncertainty]]))
+                                                     [0, 0, 0]]))  # add_uncertainty
 
         # control transition matrix
-        B = np.array([[delta_t * math.cos(self.mu[2]), 0],
-                      [delta_t * math.sin(self.mu[2]), 0],
-                      [delta_t, 1]])
+        B = np.array([[delta_t * math.cos(self.mu[2][0]), 0],
+                      [delta_t * math.sin(self.mu[2][0]), 0],
+                      [0, delta_t]])
 
         # control vector
         u = np.array([[v],
                       [omega]])
-        # print(omega)
+
 
         """ Prediction """
         # state transition to get state estimate
         mu_estimate = np.matmul(self.A, self.mu) + np.matmul(B, u)
-        # print(mu_estimate[0])
         # uncertainty introduced by state transition
         self.Sigma_estimate = np.matmul(np.matmul(self.A, self.Sigma), self.A.T) + self.R
-
-        # measurement from sensors
-        z = self.estimate_z(self.mu, visible_landmarks, distances, bearings)
 
         """ Correction """
         # Kalman gain -> degree to which measurement (z) is incorporated
         K = np.matmul(np.matmul(self.Sigma_estimate, self.C.T),
                       np.linalg.inv(np.matmul(np.matmul(self.C, self.Sigma_estimate), self.C.T) + self.Q))
-        # print(K)
-
+        # measurement from sensors
+        z = self.estimate_z(visible_landmarks, distances, bearings, v, omega, mu_estimate, self.mu)
         # update state
         self.mu = mu_estimate + np.matmul(K, (z - np.matmul(self.C, mu_estimate)))
         # update uncertainty
@@ -97,8 +93,10 @@ class KalmanFilter:
 
         # log positions to draw path trajectory
         self.positions.append((self.mu[0][0], self.mu[1][0]))
+        # self.mu[2][0] = omega
+        # print(self.mu)
 
-    def estimate_z(self, mu, visible_landmarks, distances, bearings):
+    def estimate_z(self, visible_landmarks, distances, bearings, v, omega, mu_estimate, mu):
         """"
         1. new position (x, y) estimate
             a. trilateration to find intersection point of three circles (landmark position + distance)
@@ -133,19 +131,43 @@ class KalmanFilter:
             y = (C * D - A * F) / (B * D - A * E)
 
             # average of bearing
-            bearing = sum(bearings) / len(bearings)
+            theta = sum(bearings) / len(bearings)
 
         else:
             x = mu[0][0]
             y = mu[1][0]
-            bearing = mu[2][0]
+            theta = mu[2][0]
+
+            m1 = np.array([[x],
+                           [y],
+                           [theta]
+                           ])
+
+            m2 = np.array([[1 * np.cos(theta), 0],
+                           [1 * np.sin(theta), 0],
+                           [0, 1]
+                           ])
+
+            m3 = np.array([[v],
+                           [omega],
+                           ])
+
+            new = m1 + np.matmul(m2, m3)
+
+            # updating the x and the y coordinate of the robot
+            x = new[0][0]
+            y = new[1][0]
+            # x = mu_estimate[0][0]
+            # y = mu_estimate[1][0]
+            theta = new[2][0]
 
         # add noise to mimic sensor noise
-        x_noise = np.random.normal(self.mean, self.std_z)
-        y_noise = np.random.normal(self.mean, self.std_z)
-        b_noise = np.random.normal(self.mean, self.std_z)
+        x_noise = np.random.normal(0, self.std_z)
+        y_noise = np.random.normal(0, self.std_z)
+        t_noise = np.random.normal(0, self.std_z)
+        print(t_noise)
         z = np.array([[x + x_noise],
                       [y + y_noise],
-                      [bearing + b_noise]])
+                      [theta + t_noise]])
 
         return z

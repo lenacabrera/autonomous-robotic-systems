@@ -20,7 +20,7 @@ class Robot:
 
         self.v_wheel_l = 0
         self.v_wheel_r = 0
-        self.omega = 0 #'(self.v_wheel_l - self.v_wheel_r) / 2  # TODO check intializ.
+        self.omega = 0
 
         # sensors
         self.num_sensors = num_sensors
@@ -105,7 +105,7 @@ class Robot:
                 # bearings.append(math.atan2((landmark.y - self.y), (landmark.x - self.x)))
                 radian_r_l = math.atan2((landmark.y - self.orientation[1]), (landmark.x - self.orientation[0]))
                 radian_l_env = math.atan2((landmark.y - 0), (landmark.x - 1))
-                bearing = radian_r_l + radian_l_env
+                bearing = radian_l_env - radian_r_l #radian_r_l + radian_l_env
                 bearings.append(bearing)
 
         return visible_landmarks, distances, bearings
@@ -136,9 +136,6 @@ class Robot:
         # for collision detection: save previous position
         self.x_prev = self.x
         self.y_prev = self.y
-
-        # # calculate angular velocity: omega
-        # self.omega = (self.v_wheel_l - self.v_wheel_r) / 2
 
         # # calculate angle of robot relative to x-axis (horizontal axis): Theta
         # vector_1 pointing in the direction of the x axis, vector_2 in the direction of the robot
