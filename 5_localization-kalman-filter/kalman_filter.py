@@ -62,7 +62,7 @@ class KalmanFilter:
         add_uncertainty = self.uncertainty_growth * increased_uncertainty
         self.Sigma = np.matmul(self.Sigma, np.array([[add_uncertainty, 0, 0],
                                                      [0, add_uncertainty, 0],
-                                                     [0, 0, 0]]))  # add_uncertainty
+                                                     [0, 0, 0]]))
 
         # control transition matrix
         B = np.array([[delta_t * math.cos(self.mu[2][0]), 0],

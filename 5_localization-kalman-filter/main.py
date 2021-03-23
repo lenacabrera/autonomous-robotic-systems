@@ -106,8 +106,6 @@ def draw_robot(screen, robot, robot_color, distance_values, draw_sensors=False):
 def draw_uncertainty_bubbles(screen, kalman_filter, history, time_step):
     width = kalman_filter.Sigma_estimate[0][0]
     height = kalman_filter.Sigma_estimate[1][1]
-    # width = kalman_filter.Sigma[0][0]
-    # height = kalman_filter.Sigma[1][1]
     x = kalman_filter.mu[0][0]
     y = kalman_filter.mu[1][0]
     if time_step == 29:
@@ -211,7 +209,7 @@ if __name__ == '__main__':
     max_sensor_reach = 2 * radius
     robot_color = (102, 178, 255)
     robot = Robot(x, y, radius, num_sensors, max_sensor_reach)
-    delta_t = 1  # 0.1
+    delta_t = 1
 
     kalman_filter = KalmanFilter(x=robot.x,
                                  y=robot.y,
