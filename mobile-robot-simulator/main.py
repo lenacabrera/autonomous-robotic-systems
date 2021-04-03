@@ -1,137 +1,85 @@
 import pygame
 import sys
-from robot import Robot
-import math
-import numpy as np
+import robot
+import environment
+import localization
+import animation
 
 
-def draw_walls(screen, walls, wall_thickness, wall_color):
-    # left
-    pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
-                     start_pos=walls['left'][0],
-                     end_pos=walls['left'][1])
+class Configuration:
 
-    # top
-    pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
-                     start_pos=walls['top'][0],
-                     end_pos=walls['top'][1])
-    # right
-    pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
-                     start_pos=walls['right'][0],
-                     end_pos=walls['right'][1])
+    def __init__(self):
+        # environment
+        self.env_width = 750
+        self.env_height = self.env_width
+        self.room_shape = 'square'  # square, rectangle, rectangle_double, trapezoid, trapezoid_double
+        self.wall_length = 600
+        self.wall_thickness = 6
+        self.wall_color = (196, 196, 196)  # (204, 0, 102)
 
-    # bottom
-    pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
-                     start_pos=walls['bottom'][0],
-                     end_pos=walls['bottom'][1])
+        # robot
+        self.robot_type = "v"  # d -> differential, v - > velocity
+        self.x = self.env_width / 2
+        self.y = self.env_height / 2
+        self.position_initialization = "center"  # robot's starting position: center, corner
+        self.o = 0.05
+        self.v = 0.5
+        self.v_max = 15
+        self.radius = self.env_width / 20
+        self.robot_color = (0, 153, 255)  # (153, 204, 255)
+        self.num_sensors = 12
+        self.max_sensor_reach = 2 * self.radius
+        self.visible_sensor_beams = True
 
+        # animation
+        self.delta_t = 1  # time step
+        self.uncertainty_update = 20
 
-def draw_robot(screen, robot, robot_color, distance_values, draw_sensors=False):
-    # body of robot
-    pygame.draw.circle(surface=screen, color=robot_color, center=(robot.x, robot.y), radius=robot.radius)
-    # orientation of robot
-    pygame.draw.line(surface=screen, color=(0, 0, 0), width=2,
-                     start_pos=(robot.x, robot.y), end_pos=robot.orientation)
-    # sensors
-    if draw_sensors:
-        for i_sensor, (x_sensor, y_sensor) in enumerate(robot.sensor_list):
-            angle = (i_sensor + 1) * 360 / robot.num_sensors
-            sensor_start_x = robot.x + math.cos(angle * math.pi / 180) * robot.radius
-            sensor_start_y = robot.y + math.sin(angle * math.pi / 180) * robot.radius
+        # task
+        self.task = "l"  # l -> localization, e -> evolution
 
-            sensor_length = robot.radius + distance_values[i_sensor]
-
-            sensor_end_x = robot.x + math.cos(angle * math.pi / 180) * sensor_length
-            sensor_end_y = robot.y + math.sin(angle * math.pi / 180) * sensor_length
-
-            pygame.draw.line(surface=screen, color=(255, 0, 0), width=1,
-                             start_pos=(sensor_start_x, sensor_start_y), end_pos=(sensor_end_x, sensor_end_y))
-
-            # display sensor values
-            text = str(int(distance_values[i_sensor]))
-            textsurface = myfont.render(text, False, (0, 0, 0))
-            screen.blit(textsurface, (sensor_end_x - 7 + math.cos(angle * math.pi / 180) * robot.radius / 4,
-                                      sensor_end_y - 7 + math.sin(angle * math.pi / 180) * robot.radius / 4))
-
-    # display motor speed values
-    text = str(int(robot.v_wheel_r))
-    textsurface = myfont.render(text, False, (0, 0, 0))
-    screen.blit(textsurface, (robot.x + np.cos(robot.line_angle + math.pi /2) * robot.radius /2,
-                              robot.y + np.sin(robot.line_angle + math.pi /2) * robot.radius /2))
-
-    text = str(int(robot.v_wheel_l))
-    textsurface = myfont.render(text, False, (0, 0, 0))
-    screen.blit(textsurface, (robot.x + np.cos(robot.line_angle + 3 * math.pi/2) * robot.radius / 2,
-                              robot.y + np.sin(robot.line_angle + 3 * math.pi/2) * robot.radius / 2))
+        # localization with kalman filter, randomly drawing from normal distribution (Gaussian) with
+        self.kf_mean = 1
+        self.kf_std_Sigma = 0.01
+        self.kf_std_R = 0.7
+        self.kf_std_Q = 0.3
+        self.kf_std_z = 0.2
+        self.kf_uncertainty_growth = 0.1
 
 
-def init_walls_coordinates(env_width, env_height, wall_length):
-    # wall frame distance
-    dist_l_r = (env_width - wall_length) / 2  # distance to frame, left and right
-    dist_t_b = (env_height - wall_length) / 2  # distance to frame, top and bottom
 
-    left_start = (dist_l_r, dist_t_b)
-    left_end = (dist_l_r, dist_t_b + wall_length)
-
-    top_start = (dist_l_r, dist_t_b)
-    top_end = (dist_l_r + wall_length, dist_t_b)
-
-    right_start = (dist_l_r + wall_length, dist_t_b)
-    right_end = (dist_l_r + wall_length, dist_t_b + wall_length)
-
-    bottom_start = (dist_l_r, dist_t_b + wall_length)
-    bottom_end = (dist_l_r + wall_length, dist_t_b + wall_length)
-
-    walls = {
-        'left': [left_start, left_end],
-        'top': [top_start, top_end],
-        'right': [right_start, right_end],
-        'bottom': [bottom_start, bottom_end],
-    }
-
-    return walls
-
-# Work distribution:
-# Sensor model by Lena
-# Motion model by Kathrin
-# Collision detection by Lena and Kathrin
 if __name__ == '__main__':
-    # environment
-    env_width = 750
-    env_height = env_width
-    wall_length = 600
-    wall_thickness = 6
-    wall_color = (204, 0, 102)
 
-    # robot
-    x = env_width / 2
-    y = env_height / 2
-    v = 0.5
-    v_max = 15
-    radius = env_width / 20
-    num_sensors = 12
-    max_sensor_reach = 2 * radius
-    robot_color = (153,204,255)
-    robot = Robot(x, y, radius, num_sensors, max_sensor_reach)
+    # load configuration
+    conf = Configuration()
 
-    # walls
-    walls = init_walls_coordinates(env_width, env_height, wall_length)
+    # setup environment
+    walls = environment.get_walls(conf)
+    landmarks = environment.get_landmarks(conf)
+
+    # setup robot
+    if conf.robot_type == "d":
+        conf.delta_t *= 0.1
+        robot = robot.Differential_Drive_Robot(conf)
+    elif conf.robot_type == "v":
+        robot = robot.Velocity_Drive_Robot(conf)
+
+    if conf.task == "l":
+        # localization
+        kalman_filter = localization.KalmanFilter(conf=conf, x=robot.x, y=robot.y, theta=0)
+        uncertainty_history = []
+        uncertainty_increase = 0
 
     # initialize pygame
     pygame.init()
-    screen = pygame.display.set_mode([env_width, env_height])
     clock = pygame.time.Clock()
-
-    # initialize display numbers
-    myfont = pygame.font.SysFont('Arial', 14)
+    timer_event = pygame.USEREVENT + 1  # initialize timer in order to provide constant timer-events
+    pygame.time.set_timer(timer_event, 250)
+    screen = pygame.display.set_mode([conf.env_width, conf.env_height])
     screen.fill((255, 255, 255))
+    font = pygame.font.SysFont('Arial', 14)
 
-    # initialize timer in order to provide constant timer-events
-    timer_event = pygame.USEREVENT + 1
-    time = 250  #TODO: fine-tuning
-    pygame.time.set_timer(timer_event, time)
-
-    # run animation
+    # run simulation
     go = True
     while go:
         for event in pygame.event.get():
@@ -140,51 +88,45 @@ if __name__ == '__main__':
                 # termination
                 sys.exit()
 
-            pressed_keys = pygame.key.get_pressed()
+            robot.perform_motion(conf, pygame, robot)
 
-            if (robot.v_wheel_l + robot.v_wheel_r) / 2 < v_max:
-
-                if pressed_keys[pygame.K_w]:
-                    robot.v_wheel_l += v
-                if pressed_keys[pygame.K_o]:
-                    robot.v_wheel_r += v
-                if pressed_keys[pygame.K_t]:
-                    robot.v_wheel_l += v
-                    robot.v_wheel_r += v
-                if pressed_keys[pygame.K_x]:
-                    robot.v_wheel_l = 0
-                    robot.v_wheel_r = 0
-
-            if (robot.v_wheel_l + robot.v_wheel_r) / 2 > - v_max:
-                if pressed_keys[pygame.K_s]:
-                    robot.v_wheel_l -= v
-                if pressed_keys[pygame.K_l]:
-                    robot.v_wheel_r -= v
-                if pressed_keys[pygame.K_g]:
-                    robot.v_wheel_l -= v
-                    robot.v_wheel_r -= v
-                if pressed_keys[pygame.K_x]:
-                    robot.v_wheel_l = 0
-                    robot.v_wheel_r = 0
-
-            # update screen by providing timer-event
+            # update simulation frame
             if event.type == timer_event:
-                # update robot position with delta_t = 0.1
-                robot.set_new_position(0.1)
+                robot.update_position(conf.delta_t)
 
                 # check for collision
                 robot.robot_is_crossing_wall(walls)
+                
+                
+                if conf.task == "l":  # localization
+                    # check if robot is moving
+                    if (robot.v_wheel_l + robot.v_wheel_r) / 2 != 0:
+                        if len(visible_landmarks) != 3:
+                                uncertainty_increase += 1
+                        else:
+                            # no uncertainty increase if 3 landmarks are visible
+                            uncertainty_increase = 0
+    
+                    if (robot.v_wheel_l + robot.v_wheel_r) / 2 != 0:
+                        # update kalman filter
+                        kalman_filter.kalman_filter_update(robot, conf.delta_t, visible_landmarks, distances, bearings, 
+                                                           uncertainty_increase)
 
-                # sensor value update
-                robot.update_sensors()
-                sensor_d = robot.get_sensor_distance_values(walls)
+
+                # check for landmarks
+                visible_landmarks, distances, bearings = robot.check_landmarks_in_sight(landmarks)
 
                 # clear screen
                 screen.fill((255, 255, 255))
 
                 # draw scene
-                draw_walls(screen, walls, wall_thickness, wall_color)
-                draw_robot(screen, robot, robot_color, sensor_d, draw_sensors=True)
+                animation.draw_walls(pygame, screen, walls, conf.wall_thickness, conf.wall_color)
+                animation.draw_landmarks(pygame, screen, landmarks)
+                animation.draw_robot(pygame, screen, font, robot, walls, visible_landmarks,
+                                     visible_sensor_beams=conf.visible_sensor_beams)
+                animation.draw_true_robot_trajectory(pygame, screen, robot)
+                animation.draw_believed_robot_trajectory(pygame, screen, kalman_filter)
+                animation.draw_uncertainty_ellipses(pygame, screen, kalman_filter, conf.uncertainty_update)
 
-                # update
+                # update screen
                 pygame.display.update()
