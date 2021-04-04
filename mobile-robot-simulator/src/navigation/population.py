@@ -10,6 +10,7 @@ class Population:
         self.individuals = self.build_population(conf)
         self.fitness = []
 
+
     def build_population(self, conf, bin_enc_len=7):
         """
         Initialize population according to the following encoding format:
@@ -68,45 +69,41 @@ class Population:
 
         return population
 
-    def evaluate_population(self, conf, robot, walls):
-        fitness = []
 
+    def evaluate_population(self, conf, robot, walls):
+        """ Evaluates the fitness of each individual in the current population """
+
+        fitness = []
         for i, individual in enumerate(self.individuals):
-            # print("Individual %s" % i)
-            # copy_robot = copy.deepcopy(robot)
-            copy_robot = robot
-            ann = neural_network.ANN(conf, copy_robot.get_sensor_distance_values(walls))
-            termination_counter = 0
+            ann = neural_network.ANN(conf, robot.get_sensor_distance_values(walls))
 
             for step in range(conf.path_steps):
-                v_left, v_right = ann.decode_genotype(copy_robot.get_sensor_distance_values(walls), individual, conf.v_max)
-                copy_robot.update_position(conf.delta_t, v_left, v_right)
-                copy_robot.collision_detection(walls)
-                copy_robot.update_sensors()
+                v_left, v_right = ann.decode_genotype(robot.get_sensor_distance_values(walls), individual, conf.v_max)
+                robot.update_position(conf.delta_t, v_left, v_right)
+                robot.collision_detection(walls)
+                robot.update_sensors()
 
-                # if step == 0:
-                #     old_fitness = fitness_function.robot_fitness(copy_robot, wall_length)
-                # current_fitness = fitness_function.robot_fitness(copy_robot, wall_length)
-                # if current_fitness <= old_fitness:
-                #     termination_counter += 1
-                # old_fitness = current_fitness
-                # if termination_counter == termination_threshold:
-                #     print("Individual's fitness stagnates")
-                #     break
-
-            fitness.append(fitness_function.robot_fitness(copy_robot, conf.wall_length))
+            fitness.append(fitness_function.get_fitness(conf, robot))
 
         self.fitness = fitness
 
+
     def selection(self, conf, method="truncated_rank_based_selection"):
+        """ Selects the best performing individuals according to their fitness """
+
         if method == "truncated_rank_based_selection":
+            # select n best performing individuals
             n_best = int(len(self.individuals) * conf.n_best_percentage)
             zipped = zip(self.fitness, self.individuals)
             zipped_sorted = sorted(zipped, key=lambda x: x[0], reverse=True)
             return zipped_sorted[0:n_best]
 
+
     def replacement(self, selected, method="generational_replacement"):
+        """ Duplicates selected (best performing) individuals and replaces old population with new one """
+
         if method == "generational_replacement":
+            # replace entire population
             n_copy = int(len(self.individuals) / len(selected))
             difference = len(self.individuals) - (len(selected) * n_copy)
 
@@ -123,10 +120,14 @@ class Population:
                     break
             self.individuals = new_population
 
+
     def crossover_and_mutation(self, conf, bin_enc_len=7):
+        """ Performs crossover and mutation on individual(s) """
 
         def crossover(self):
-            # CROSSOVER
+            """ Recombines genotypes of two individuals to make off-spring.
+            Parents genotypes are cut at random position, switched and recombined to form child. """
+
             n_crossover = int(int(len(self.individuals) * conf.n_best_percentage) * conf.crossover_percentage)
             unique_individuals_tuple = list(set([tuple(g) for g in self.individuals]))
             unique_individuals = [list(t) for t in unique_individuals_tuple]
@@ -173,6 +174,9 @@ class Population:
                         break
 
         def mutation(self):
+            """ Mutates single individual with a specified likelihood.
+            Mutation is performed by generating random new weight to replace random old weight in genotype. """
+
             probability_range = list(range(0, 100))
             percentage_range = probability_range[0:int(100 * conf.mutation_percentage)]
 

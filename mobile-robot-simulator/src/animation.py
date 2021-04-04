@@ -3,6 +3,7 @@ import numpy as np
 
 
 def draw_walls(pygame, screen, walls, wall_thickness, wall_color):
+    """ Draws walls of the environment as lines """
     for left_wall in walls["left"]:
         pygame.draw.line(surface=screen, color=wall_color, width=wall_thickness,
                          start_pos=left_wall[0],
@@ -25,11 +26,14 @@ def draw_walls(pygame, screen, walls, wall_thickness, wall_color):
 
 
 def draw_landmarks(pygame, screen, landmarks):
+    """ Draws landmarks as dots in the environment """
     for landmark in landmarks:
         pygame.draw.circle(surface=screen, color=(196, 196, 196), center=(landmark.x, landmark.y), radius=5)
 
 
 def draw_robot(pygame, screen, font, robot, walls, visible_landmarks, visible_sensor_beams=False):
+    """ Draws the robot as a circle with a line indicating its orientation as well as lines depicting its sensor beams
+    and line of vision for visible landmarks. """
 
     # body of robot
     pygame.draw.circle(surface=screen, color=robot.color, center=(robot.x, robot.y), radius=robot.radius, width=2)
@@ -78,8 +82,8 @@ def draw_robot(pygame, screen, font, robot, walls, visible_landmarks, visible_se
 
 
 def draw_true_robot_trajectory(pygame, screen, robot):
+    """ Draws a line for the true trajectory of the robot (navigation) """
     robot_positions = robot.trajectory_positions
-
     for start in range(len(robot_positions) - 1):
         pygame.draw.line(surface=screen, color=(30, 144, 255), width=2,
                          start_pos=(robot_positions[start][0], robot_positions[start][1]),
@@ -87,8 +91,8 @@ def draw_true_robot_trajectory(pygame, screen, robot):
 
 
 def draw_believed_robot_trajectory(pygame, screen, kalman_filter):
+    """ Draws a line for the believed trajectory of the robot """
     kalman_filter_positions = kalman_filter.positions
-
     for start in range(len(kalman_filter_positions) - 1):
         pygame.draw.line(surface=screen, color=(255, 127, 80), width=2,
                          start_pos=(kalman_filter_positions[start][0], kalman_filter_positions[start][1]),
@@ -96,13 +100,31 @@ def draw_believed_robot_trajectory(pygame, screen, kalman_filter):
 
 
 def draw_uncertainty_ellipses(pygame, screen, kalman_filter, time_step):
+    """ Visualizes the uncertainty of robot belief in form of ellipses (planar Gaussian) every x time steps"""
     for i, entry in enumerate(kalman_filter.uncertainty_history):
         if i % time_step == 0:
             pygame.draw.ellipse(surface=screen, color=(0, 0, 0), rect=(entry[0], entry[1], entry[2], entry[3]), width=1)
 
 
+def draw_covered_area(pygame, screen, robot, covered_area_color):
+    """ Colors the area that robot has already visited """
+    for position in robot.trajectory_positions:
+        pygame.draw.circle(surface=screen, color=covered_area_color,
+                           center=(position[0], position[1]), radius=robot.radius)
+
+
+def draw_generation_info(pygame, screen, generation, avg_fitness):
+    """ Displays text information for animation """
+    generation_str = "Generation " + str(generation)
+    fitness_str = "Fitness: " + str(avg_fitness)
+    generation_font = pygame.font.SysFont('Arial', 22)
+    fitness_font = pygame.font.SysFont('Arial', 18)
+    screen.blit(generation_font.render(generation_str, False, (0, 0, 0)), (20, 10))  # position in corner
+    screen.blit(fitness_font.render(fitness_str, False, (0, 0, 0)), (20, 40))  # position in corner
+
 
 def draw_dashed_line(pygame, surf, color, start_pos, end_pos, width=2, dash_length=5):
+    """ Draws a dashed line in simulation """
     x1, y1 = start_pos
     x2, y2 = end_pos
     dl = dash_length
@@ -122,18 +144,3 @@ def draw_dashed_line(pygame, surf, color, start_pos, end_pos, width=2, dash_leng
         start = (round(x1), round(y1))
         end = (round(x2), round(y2))
         pygame.draw.line(surf, color, start, end, width)
-
-
-def draw_covered_area(pygame, screen, robot, covered_area_color):
-    for position in robot.trajectory_positions:
-        pygame.draw.circle(surface=screen, color=covered_area_color,
-                           center=(position[0], position[1]), radius=robot.radius)
-
-
-def draw_generation_info(pygame, screen, generation, avg_fitness):
-    generation_str = "Generation " + str(generation)
-    fitness_str = "Fitness: " + str(avg_fitness)
-    generation_font = pygame.font.SysFont('Arial', 22)
-    fitness_font = pygame.font.SysFont('Arial', 18)
-    screen.blit(generation_font.render(generation_str, False, (0, 0, 0)), (20, 10))  # position in corner
-    screen.blit(fitness_font.render(fitness_str, False, (0, 0, 0)), (20, 40))  # position in corner

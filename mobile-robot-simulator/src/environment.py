@@ -1,7 +1,7 @@
 from shapely.geometry import Point
 
 def get_walls(conf, test_environment=None):
-    """ Retrieve coordinates of walls which are shaping the environment """
+    """ Retrieves coordinates of walls which are shaping the environment and sets starting position of robot """
 
     if test_environment is not None:
         room_shape = test_environment
@@ -39,8 +39,8 @@ def get_walls(conf, test_environment=None):
             conf.y = conf.env_height / 2
         elif conf.position_initialization == "corner":
             # square - corner
-            conf.x = conf.env_width - conf.radius
-            conf.y = conf.env_height - conf.radius
+            conf.x = dist_l_r + conf.radius
+            conf.y = dist_t_b + conf.radius
 
     elif room_shape == "rectangle":
 
@@ -193,6 +193,8 @@ def get_walls(conf, test_environment=None):
 
 
 def get_landmarks(conf):
+    """ Returns landmarks (positions) as Point objects """
+
     room_l = (conf.env_width - conf.wall_length) / 2  # distance to frame, left and right
     room_t = (conf.env_height - conf.wall_length) / 2  # distance to frame, top and bottom
 

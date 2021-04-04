@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 
 
 def measure_diversity(population):
+    """ Measures the (hamming) distance between an individual with all other individuals """
+
     unique_individuals_tuple = list(set([tuple(g) for g in population.individuals]))
     unique_individuals = [list(t) for t in unique_individuals_tuple]
 
@@ -15,7 +17,10 @@ def measure_diversity(population):
 
     return max_distance
 
+
 def plot_avg_and_max_fitness(n_generation, avg_fitnesses, max_fitnesses):
+    """ Plots average and maximum fitness of all generations """
+
     generation = list(range(n_generation))
     fig, ax = plt.subplots()
     ax.plot(generation, avg_fitnesses, marker='.', label="Average")
@@ -27,6 +32,8 @@ def plot_avg_and_max_fitness(n_generation, avg_fitnesses, max_fitnesses):
 
 
 def plot_diversity(n_generation, diversity_measures):
+    """ Plots diversity of all generations"""
+
     generation = list(range(n_generation))
     fig, ax = plt.subplots()
     ax.plot(generation, diversity_measures, marker='.')

@@ -57,7 +57,8 @@ class KalmanFilter:
         self.uncertainty_history = []
 
 
-    def kalman_filter_update(self, robot, delta_t, visible_landmarks, distances, bearings, increased_uncertainty):
+    def update_belief(self, robot, delta_t, visible_landmarks, distances, bearings, increased_uncertainty):
+        """ Performs update of robot's belief about its pose (position and orientation) """
 
         v = (robot.v_wheel_l + robot.v_wheel_r) / 2
         omega = robot.omega
@@ -103,7 +104,7 @@ class KalmanFilter:
 
 
     def estimate_z(self, visible_landmarks, distances, bearings, v, omega, mu_estimate, mu):
-        """"
+        """ Corrects belief (if 3 landmarks are measured, else no correction)
         1. new position (x, y) estimate
             a. trilateration to find intersection point of three circles (landmark position + distance)
         2. new orientation (theta) estimate
@@ -113,7 +114,6 @@ class KalmanFilter:
         """
 
         if len(visible_landmarks) == 3:
-
             # apply trilateration formulas to return the (x,y) intersection point of three circles
             # z is estimation of position based on sensor info/distances
 
@@ -140,6 +140,7 @@ class KalmanFilter:
             theta = sum(bearings) / len(bearings)
 
         else:
+            # no correction
             x = mu[0][0]
             y = mu[1][0]
             theta = mu[2][0]

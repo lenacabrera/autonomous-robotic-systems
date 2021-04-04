@@ -38,8 +38,9 @@ class Robot(ABC):
         self.trajectory_positions = [(self.x, self.y)]
         self.trajectory_circles = [Point(self.x, self.y).buffer(self.radius), Point(self.x, self.y).buffer(self.radius)]
 
+        self.fitness_score = 0
         self.sensor_score = 10
-        self.score = 0
+
 
         self.color = conf.robot_color
 
@@ -68,6 +69,7 @@ class Robot(ABC):
         self.sensor_list = sensors
 
     def get_sensor_distance_values(self, walls):
+        """ Retrieves distances for all sensors in which they detect an object (within sensor range)"""
         distance_values = []
         for i_sensor, (x_sensor, y_sensor) in enumerate(self.sensor_list):
             sensor_distances = []
@@ -88,7 +90,7 @@ class Robot(ABC):
                         sensor_distances.append(c)
                         self.sensor_score *= c / self.max_sensor_reach
                         if int(c) == 0:
-                            # if robot hit the wall, make score zero
+                            # if robot hit the wall, make fitness_score zero
                             self.sensor_score = 0
 
             distance_values.append(min(sensor_distances))
@@ -96,7 +98,7 @@ class Robot(ABC):
         return distance_values
 
     def collision_detection(self, walls):
-        # check if robot crosses the wall and if so update position
+        # Checks if robot crosses a wall and if so update position such that robot slides along the wall
         x = self.x
         y = self.y
 
@@ -148,7 +150,7 @@ class Robot(ABC):
 
 
     def check_landmarks_in_sight(self, landmarks):
-        # check which landmarks are in sight of robot
+        # Checks which landmarks are in sight of the robot
         visible_landmarks = []
         distances = []
         bearings = []
@@ -165,10 +167,10 @@ class Robot(ABC):
 
 
     def update_score(self):
-        # for i in range(len(self.circles) - 2):
+        """ Updates fitness score of robot """
         polygon = cascaded_union(self.trajectory_circles[:-2])
         intersection = polygon.intersection(self.trajectory_circles[-1]).area
-        self.score += (self.trajectory_circles[-1].area - intersection)
+        self.fitness_score += (self.trajectory_circles[-1].area - intersection)
 
 
 class Differential_Drive_Robot(Robot):
@@ -176,14 +178,15 @@ class Differential_Drive_Robot(Robot):
     def perform_motion(self, conf, pygame, use_keyboard=True):
         """ Performs motion of robot.
             Control robot with the following keys:
-            W -> increment of left wheel motor speed
-            S -> decrement of left wheel motor speed
-            O -> increment of right wheel motor speed
-            L -> decrement of right wheel motor speed
-            T -> increment of both wheels' motor speed
-            G -> decrement of both wheels' motor speed
+            W -> increment left wheel motor speed
+            S -> decrement left wheel motor speed
+            O -> increment right wheel motor speed
+            L -> decrement right wheel motor speed
+            T -> increment both wheels' motor speed
+            G -> decrement both wheels' motor speed
             X -> set both wheels' motor speed to zero
         """
+
         if use_keyboard:
             pressed_keys = pygame.key.get_pressed()
 
@@ -291,8 +294,9 @@ class Velocity_Drive_Robot(Robot):
             S -> decrement velocity
             D -> increment rotation (turn right)
             A -> decrement rotation (turn left)
-            X -> stop (stays the same)
+            X -> set velocity to zero (stop)
         """
+
         if use_keyboard:
             pressed_keys = pygame.key.get_pressed()
 
@@ -322,6 +326,8 @@ class Velocity_Drive_Robot(Robot):
                 self.omega = 0
 
     def update_position(self, delta_t):
+        """ Updates the position of the robot based on the current velocity """
+
         # save previous position for collision detection
         self.x_prev = self.x
         self.y_prev = self.y

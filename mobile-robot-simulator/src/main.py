@@ -4,7 +4,7 @@ import copy
 import robot
 import environment
 import animation
-from localization.localization import KalmanFilter
+from localization.kalman_filter import KalmanFilter
 from navigation.population import Population
 from navigation.neural_network import ANN
 from navigation import utils
@@ -14,64 +14,62 @@ class Configuration:
 
     def __init__(self):
         # environment
-        self.env_width = 750
-        self.env_height = self.env_width
-        self.room_shape = 'square'  # square, rectangle, rectangle_double, trapezoid, trapezoid_double
+        self.env_width = 750                     # animation frame width
+        self.env_height = self.env_width         # animation frame height
         self.wall_length = 600
         self.wall_thickness = 6
         self.wall_color = (196, 196, 196)
+        self.room_shape = 'square'               # shape of environment: square, rectangle, rectangle_double, trapezoid, trapezoid_double
 
         # robot
-        self.robot_type = "d"  # d -> differential, v - > velocity
-        self.x = self.env_width / 2
-        self.y = self.env_height / 2
+        self.x = self.env_width / 2              # x coordinate of initial position of robot
+        self.y = self.env_height / 2             # y coordinate of initial position of robot
+        self.radius = self.env_width / 20        # radius of robot body
         self.position_initialization = "center"  # robot's starting position: center, corner
-        self.o = 0.05
-        self.v = 0.5
-        self.v_max = 15
-        self.radius = self.env_width / 20
         self.robot_color = (0, 153, 255)
-        self.n_sensors = 12
-        self.max_sensor_reach = 2 * self.radius
-        self.visible_sensor_beams = True
+
+        # sensors
+        self.n_sensors = 12                      # number of sensors
+        self.max_sensor_reach = 2 * self.radius  # maximum length of sensor beam
+        self.visible_sensor_beams = True         # visualize sensor beams when True
+
+        # motion and control
+        self.o = 0.05                            # fixed increase/decrease of rotation
+        self.v = 0.5                             # fixed increase/decrease of velocity
+        self.v_max = 15                          # maximum velocity
 
         # animation
-        self.delta_t = 1  # time step
-        self.uncertainty_update = 20
+        self.delta_t = 1                         # time step
+        self.uncertainty_update = 20             # visualize uncertainty every x time steps
 
-        """" Task
-        # 0: Localization with Kalman Filter
-        # 1: Navigation with Evolutionary Algorithm
-        """
-        self.task = 1
+        self.task = "navigation"  # navigation, localization
 
-        # LOCALIZATION with kalman filter, randomly drawing from normal distribution (Gaussian) with
-        self.kf_mean = 1
-        self.kf_std_Sigma = 0.01
-        self.kf_std_R = 0.7
-        self.kf_std_Q = 0.3
-        self.kf_std_z = 0.2
-        self.kf_uncertainty_growth = 0.1
+        # localization with kalman filter
+        # randomly drawing parameters from normal distribution (Gaussian) with
+        self.kf_mean = 1                         # mean of normal distribution
+        self.kf_std_Sigma = 0.01                 # uncertainty
+        self.kf_std_R = 0.7                      # process noise
+        self.kf_std_Q = 0.3                      # measurement noise (sensor)
+        self.kf_std_z = 0.2                      # additional measurement noise
+        self.kf_uncertainty_growth = 0.1         # degree to which uncertainty grows when no correction occurs
 
-        # NAVIGATION with evolutionary algorithm, optimizing covered area
-        self.n_individuals = 10  # 30
-        self.max_n_generations = 10  # 100
-        self.n_best_percentage = 0.8
-        self.crossover_percentage = 0.2
-        self.mutation_percentage = 0.05
-        self.termination_threshold = 5
-        self.dim_hidden = 4
-        self.path_steps = 10  # 20
-        self.test_different_room = True
-        self.test_room = "trapezoid"
+        # navigation with evolutionary algorithm
+        self.n_individuals = 10                  # population size
+        self.max_n_generations = 10              # max. number of generations
+        self.fitness_strategy = 0                # 0: only covered area, 1: 0 + reward collision-free navigation
+        self.n_best_percentage = 0.8             # selection rate
+        self.crossover_percentage = 0.2          # crossover rate: how many of selected to crossover
+        self.mutation_percentage = 0.05          # mutation rate: likelihood to perform one mutation
+        self.termination_threshold = 5           # fitness stagnation indicator
+        self.dim_hidden = 4                      # memory size of ANN (neural controller)
+        self.path_steps = 20                     # number of steps that robot makes in simulation
+        self.test_different_room = True          # test evolved best individual in a different environment
+        self.test_room = "trapezoid"             # shape of test environment
         self.covered_area_color = (204, 229, 255)
 
 
 def localization(conf, robot, walls, pygame, screen, timer_event):
-    """
-    Performs localization with Kalman Filter: pose tracking with local localization (init position is known) and
-    feature based map (landmark locations are known)
-    """
+    """ Performs localization with a Kalman Filter """
 
     landmarks = environment.get_landmarks(conf)
     kalman_filter = KalmanFilter(conf=conf, x=robot.x, y=robot.y, theta=0)
@@ -105,8 +103,8 @@ def localization(conf, robot, walls, pygame, screen, timer_event):
 
                 if (robot.v_wheel_l + robot.v_wheel_r) / 2 != 0:
                     # update kalman filter
-                    kalman_filter.kalman_filter_update(robot, conf.delta_t, visible_landmarks, distances, bearings,
-                                                       uncertainty_increase)
+                    kalman_filter.update_belief(robot, conf.delta_t, visible_landmarks, distances, bearings,
+                                                uncertainty_increase)
 
                 # check for landmarks
                 visible_landmarks, distances, bearings = robot.check_landmarks_in_sight(landmarks)
@@ -115,11 +113,9 @@ def localization(conf, robot, walls, pygame, screen, timer_event):
                 screen.fill((255, 255, 255))
 
                 # draw scene
-                if conf.task == 0:
-                    animation.draw_true_robot_trajectory(pygame, screen, robot)
-                    animation.draw_believed_robot_trajectory(pygame, screen, kalman_filter)
-                    animation.draw_uncertainty_ellipses(pygame, screen, kalman_filter, conf.uncertainty_update)
-
+                animation.draw_true_robot_trajectory(pygame, screen, robot)
+                animation.draw_believed_robot_trajectory(pygame, screen, kalman_filter)
+                animation.draw_uncertainty_ellipses(pygame, screen, kalman_filter, conf.uncertainty_update)
                 animation.draw_walls(pygame, screen, walls, conf.wall_thickness, conf.wall_color)
                 animation.draw_landmarks(pygame, screen, landmarks)
                 animation.draw_robot(pygame, screen, font, robot, walls, visible_landmarks,
@@ -130,9 +126,7 @@ def localization(conf, robot, walls, pygame, screen, timer_event):
 
 
 def navigation(conf, robot, walls, pygame, screen):
-    """
-    Collision-free navigation with evolutionary algorithm, goal: maximize covered area
-    """
+    """ Performs collision-free navigation with evolutionary algorithm with goal of maximizing the covered area """
 
     # create copy of initial robot
     robot_evolution = copy.deepcopy(robot)
@@ -259,25 +253,21 @@ if __name__ == '__main__':
     # initialize pygame
     pygame.init()
     clock = pygame.time.Clock()
-    timer_event = pygame.USEREVENT + 1  # initialize timer in order to provide constant timer-events
+    timer_event = pygame.USEREVENT + 1
     pygame.time.set_timer(timer_event, 250)
     screen = pygame.display.set_mode([conf.env_width, conf.env_height])
-    screen.fill((255, 255, 255))
     font = pygame.font.SysFont('Arial', 14)
 
     # setup environment
     walls = environment.get_walls(conf)
 
-    # setup robot
-    if conf.robot_type == "d":
+    if conf.task == "navigation":
         conf.delta_t *= 0.1
+        # setup robot
         robot = robot.Differential_Drive_Robot(conf)
-    elif conf.robot_type == "v":
-        robot = robot.Velocity_Drive_Robot(conf)
-
-    if conf.task == 0:
-        # localization with kalman filter
-        localization(conf, robot, walls, pygame, screen, timer_event)
-    if conf.task == 1:
-        # navigation with evolutionary algorithm
         navigation(conf, robot, walls, pygame, screen)
+    if conf.task == "localization":
+        conf.visible_sensor_beams = False
+        # setup robot
+        robot = robot.Velocity_Drive_Robot(conf)
+        localization(conf, robot, walls, pygame, screen, timer_event)

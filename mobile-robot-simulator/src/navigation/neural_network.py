@@ -24,7 +24,7 @@ class ANN:
         return 1 / (1 + np.exp(-x))
 
     def decode_genotype(self, sensor_distances, genotype, v_max):
-        # Return velocities, decoded by neural network
+        """ Returns velocities decoded by neural network """
         weights_in_hid, weights_hid_out = self.genotype_to_weights(genotype)
 
         # input layer
@@ -45,11 +45,10 @@ class ANN:
         return velocities
 
     def convert_outputs_to_velocities(self, outputs, v_max):
+        """ Rescales outputs to velocities useable in simulation """
 
         v_wheel_l = abs((1 - outputs[0] * 1000) * 10)
         v_wheel_r = abs((1 - outputs[1] * 1000) * 10)
-        # print(outputs[0] * 100 * v_max, outputs[0])
-
         # v_wheel_l = outputs[0] * 100 * v_max
         # v_wheel_r = outputs[1] * 100 * v_max
 
@@ -72,9 +71,7 @@ class ANN:
                 weight_suffix_int = (weight_suffix_int << 1) | bit
 
             # build weight from prefix and suffix
-            # prefix_divisor = 100
             weight = weight_suffix_int / prefix_divisor
-
             weights[i_weight] = weight
 
         # weights as vectors
