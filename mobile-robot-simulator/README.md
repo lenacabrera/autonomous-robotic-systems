@@ -18,6 +18,7 @@ The navigation is optimized by an evolutionary algorithm that performs
 The simulation visualizes the performance (robot navigation) of the best performing individual after each generation. 
 Additionally, it is possible to place best individual of last generation in a different environment and test its performance there again.
 
+#### Exemplary Navigation Simulation:
 
 ![Navigation](./img/test_navigation.gif)
 
@@ -30,5 +31,7 @@ The simulation visualizes the robots true trajectory (blue) and its believed tra
 In this simulation, the correction of the Kalman Filter is performed whenever exactly three landmarks are visible to the robot, meaning they are in sensor reach (green dashed line).
 
 Process Noise, Measurement/Sensor noise as well as values for the covariance matrix (uncertainty) are drawn from normal distributions (Gaussian).
+
+#### Exemplary Localization Simulation:
 
 ![Localization](./img/localization.gif)
