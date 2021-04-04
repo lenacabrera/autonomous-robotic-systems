@@ -1,11 +1,15 @@
-# Mobile Robot Simulator
+# Autonomous Robotic Systems
+
+This project contains several techniques and algorithms used in autonomous robotic systems, including swarm intelligence, evolutionary algorithms, and localization.
+
+## Mobile Robot Simulator
 This project contains a simulator of a mobile robot placed in an environment. It can perform one of two tasks: 
 - Navigation
 - Localization
 
-In `main.py`, specify which task to perform.
+In `mobile-robot-simulator/src/main.py`, specify which task to perform.
 
-## Navigation with Evolutionary Algorithm
+### Navigation with Evolutionary Algorithm
 The goal of this task is to navigate through the environment while maximizing the covered / visited area by the robot.
 
 The navigation is optimized by an evolutionary algorithm that performs 
@@ -22,7 +26,7 @@ Additionally, it is possible to place best individual of last generation in a di
 
 ![Navigation](./img/test_navigation.gif)
 
-## Localization with Kalman Filter
+### Localization with Kalman Filter
 
 The goal of this task is to track the pose (position and orientation) of the robot navigating through the environment. The setup assumes local localization (starting position is known) and known feature correspondence (landmarks' positions are identifiable). 
 
@@ -35,3 +39,7 @@ Process Noise, Measurement/Sensor noise as well as values for the covariance mat
 #### Exemplary Localization Simulation:
 
 ![Localization](./img/localization.gif)
+
+## Particle Swarm Optimization (PSO)
+
+Optimization technique that aims to find the optimal value (e.g. global minima) in a fitness landscape through emergent collective behavior and intelligence in a decentralized self-organizing systems.
