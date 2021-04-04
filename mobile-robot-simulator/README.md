@@ -18,7 +18,8 @@ The navigation is optimized by an evolutionary algorithm that performs
 The simulation visualizes the performance (robot navigation) of the best performing individual after each generation. 
 Additionally, it is possible to place best individual of last generation in a different environment and test its performance there again.
 
-![Navigation](./img/navigation.png)
+
+![Navigation](./img/test_navigation.gif)
 
 ## Localization with Kalman Filter
 
@@ -30,4 +31,4 @@ In this simulation, the correction of the Kalman Filter is performed whenever ex
 
 Process Noise, Measurement/Sensor noise as well as values for the covariance matrix (uncertainty) are drawn from normal distributions (Gaussian).
 
-![Localization](./img/localization.png)
+![Localization](./img/localization.gif)
