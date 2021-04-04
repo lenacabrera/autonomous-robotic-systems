@@ -1,5 +1,7 @@
 import pso
 
+# matplotlib.use("TkAgg")  # uncomment for use on MAC
+
 if __name__ == '__main__':
     pso.optimize(n_particles=20,                   # population size
                  n_iterations=130,                 # number of iterations / updates

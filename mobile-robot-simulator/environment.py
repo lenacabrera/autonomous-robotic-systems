@@ -1,13 +1,18 @@
 from shapely.geometry import Point
 
-def get_walls(conf):
+def get_walls(conf, test_environment=None):
     """ Retrieve coordinates of walls which are shaping the environment """
+
+    if test_environment is not None:
+        room_shape = test_environment
+    else:
+        room_shape = conf.room_shape
 
     # wall frame distance
     dist_l_r = (conf.env_width - conf.wall_length) / 2  # distance to frame, left and right
     dist_t_b = (conf.env_height - conf.wall_length) / 2  # distance to frame, top and bottom
 
-    if conf.room_shape == "square":
+    if room_shape == "square":
 
         left_start = (dist_l_r, dist_t_b)
         left_end = (dist_l_r, dist_t_b + conf.wall_length)
@@ -37,7 +42,7 @@ def get_walls(conf):
             conf.x = conf.env_width - conf.radius
             conf.y = conf.env_height - conf.radius
 
-    elif conf.room_shape == "rectangle":
+    elif room_shape == "rectangle":
 
         factor = 0.8
 
@@ -67,7 +72,7 @@ def get_walls(conf):
             conf.x = conf.env_width * 0.8 - (conf.env_width - conf.wall_length) / 2 - conf.radius
             conf.y = (conf.env_height - conf.wall_length) / 2 + conf.radius
 
-    elif conf.room_shape == "rectangle_double":
+    elif room_shape == "rectangle_double":
 
         factor = 0.8
         difference_outer_inner = 175
@@ -113,7 +118,7 @@ def get_walls(conf):
             conf.x = conf.env_width * 0.8 - (conf.env_width - conf.wall_length) / 2 - conf.radius
             conf.y = (conf.env_height - conf.wall_length) / 2 + conf.radius
 
-    elif conf.room_shape == "trapezoid":
+    elif room_shape == "trapezoid":
 
         left_start = (dist_l_r, dist_t_b)  # top
         left_end = (dist_l_r, dist_t_b + conf.wall_length)  # bottom
@@ -141,7 +146,7 @@ def get_walls(conf):
             conf.x = conf.env_width - (conf.env_width - conf.wall_length) / 2 - conf.radius
             conf.y = conf.env_height * 0.8 - (conf.env_height - conf.wall_length) / 2
 
-    if conf.room_shape == "trapezoid_double":
+    if room_shape == "trapezoid_double":
         difference_outer_inner = 200
 
         left_start = (dist_l_r, dist_t_b)  # top

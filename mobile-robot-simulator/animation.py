@@ -66,7 +66,7 @@ def draw_robot(pygame, screen, font, robot, walls, visible_landmarks, visible_se
                              start_pos=(sensor_start_x, sensor_start_y), end_pos=(sensor_end_x, sensor_end_y))
 
             # sensor distance
-            angle = (i_sensor + 1) * 360 / robot.num_sensors
+            angle = (i_sensor + 1) * 360 / robot.n_sensors
             screen.blit(font.render(str(int(sensor_distances[i_sensor])), False, (204, 0, 102)),
                         (sensor_end_x - 7 + math.cos(angle * math.pi / 180) * robot.radius / 4,
                          sensor_end_y - 7 + math.sin(angle * math.pi / 180) * robot.radius / 4))
@@ -122,3 +122,18 @@ def draw_dashed_line(pygame, surf, color, start_pos, end_pos, width=2, dash_leng
         start = (round(x1), round(y1))
         end = (round(x2), round(y2))
         pygame.draw.line(surf, color, start, end, width)
+
+
+def draw_covered_area(pygame, screen, robot, covered_area_color):
+    for position in robot.trajectory_positions:
+        pygame.draw.circle(surface=screen, color=covered_area_color,
+                           center=(position[0], position[1]), radius=robot.radius)
+
+
+def draw_generation_info(pygame, screen, generation, avg_fitness):
+    generation_str = "Generation " + str(generation)
+    fitness_str = "Fitness: " + str(avg_fitness)
+    generation_font = pygame.font.SysFont('Arial', 22)
+    fitness_font = pygame.font.SysFont('Arial', 18)
+    screen.blit(generation_font.render(generation_str, False, (0, 0, 0)), (20, 10))  # position in corner
+    screen.blit(fitness_font.render(fitness_str, False, (0, 0, 0)), (20, 40))  # position in corner

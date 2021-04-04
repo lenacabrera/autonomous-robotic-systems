@@ -3,16 +3,16 @@ import math
 
 
 class KalmanFilter:
+
     def __init__(self, conf, x, y, theta):
 
-        # CONFIGURATION
+        # configuration parameters
         self.mean = conf.kf_mean
         self.std_Sigma = conf.kf_std_Sigma
         self.std_R = conf.kf_std_R
         self.std_Q = conf.kf_std_Q
         self.std_z = conf.kf_std_z
         self.uncertainty_growth = conf.kf_uncertainty_growth
-        self.uncertainty_history = []
 
         # state vector / robot belief
         self.mu = np.array([[x],
@@ -52,6 +52,10 @@ class KalmanFilter:
 
         # belief trajectory
         self.positions = [(x, y)]
+
+        # intermediate uncertainties
+        self.uncertainty_history = []
+
 
     def kalman_filter_update(self, robot, delta_t, visible_landmarks, distances, bearings, increased_uncertainty):
 

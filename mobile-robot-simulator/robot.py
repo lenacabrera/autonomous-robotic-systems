@@ -1,6 +1,7 @@
 import numpy as np
 import math
 from shapely.geometry import LineString, Point
+from shapely.ops import cascaded_union
 from abc import ABC, abstractmethod
 
 
@@ -26,7 +27,7 @@ class Robot(ABC):
         self.theta = 0
 
         # sensors
-        self.num_sensors = conf.num_sensors
+        self.n_sensors = conf.n_sensors
         self.max_sensor_reach = conf.max_sensor_reach
         self.sensor_list = []
         self.init_sensors()
@@ -56,8 +57,8 @@ class Robot(ABC):
     def update_sensors(self):
         """ Update coordinates of sensor ends after robot has moved """
         sensors = []
-        for sensor_id in range(self.num_sensors):
-            angle = (sensor_id + 1) * 360 / self.num_sensors
+        for sensor_id in range(self.n_sensors):
+            angle = (sensor_id + 1) * 360 / self.n_sensors
             length_sensor_line = self.radius + self.max_sensor_reach
             radians = math.atan2((self.orientation[1] - self.y), (self.orientation[0] - self.x))
             x_sensor = self.x + length_sensor_line * math.cos(angle * math.pi / 180 + radians)
@@ -94,7 +95,7 @@ class Robot(ABC):
 
         return distance_values
 
-    def robot_is_crossing_wall(self, walls):
+    def collision_detection(self, walls):
         # check if robot crosses the wall and if so update position
         x = self.x
         y = self.y
@@ -136,7 +137,7 @@ class Robot(ABC):
 
         self.trajectory_positions.append((self.x, self.y))
         self.trajectory_circles.append(Point(self.x, self.y).buffer(self.radius))
-        # self.update_score()
+        self.update_score()
 
         if intersection_left.is_empty and intersection_right.is_empty and intersection_top.is_empty and intersection_bottom.is_empty:
             return
@@ -161,6 +162,13 @@ class Robot(ABC):
                 bearings.append(bearing)
 
         return visible_landmarks, distances, bearings
+
+
+    def update_score(self):
+        # for i in range(len(self.circles) - 2):
+        polygon = cascaded_union(self.trajectory_circles[:-2])
+        intersection = polygon.intersection(self.trajectory_circles[-1]).area
+        self.score += (self.trajectory_circles[-1].area - intersection)
 
 
 class Differential_Drive_Robot(Robot):
@@ -204,8 +212,13 @@ class Differential_Drive_Robot(Robot):
                     self.v_wheel_l = 0
                     self.v_wheel_r = 0
 
-    def update_position(self, delta_t):
+    def update_position(self, delta_t, v_left=None, v_right=None):
         """ Updates the position of the robot based on the current velocities of the two wheels """
+
+        if v_left is not None:
+            self.v_wheel_l = v_left
+        if v_right is not None:
+            self.v_wheel_r = v_right
 
         # save previous position for collision detection
         self.x_prev = self.x
