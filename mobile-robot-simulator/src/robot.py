@@ -39,8 +39,7 @@ class Robot(ABC):
         self.trajectory_circles = [Point(self.x, self.y).buffer(self.radius), Point(self.x, self.y).buffer(self.radius)]
 
         self.fitness_score = 0
-        self.sensor_score = 10
-
+        self.collision_score = 10
 
         self.color = conf.robot_color
 
@@ -81,17 +80,17 @@ class Robot(ABC):
                     if intersection.is_empty:
                         # if no intersection -> maximum sensor reach
                         sensor_distances.append(self.max_sensor_reach)
-                        self.sensor_score *= self.max_sensor_reach / self.max_sensor_reach
+                        self.collision_score *= self.max_sensor_reach / self.max_sensor_reach
                     else:
                         # if intersection
                         a = abs(self.x - intersection.x)
                         b = abs(self.y - intersection.y)
                         c = math.sqrt(math.pow(a, 2) + math.pow(b, 2)) - self.radius
                         sensor_distances.append(c)
-                        self.sensor_score *= c / self.max_sensor_reach
+                        self.collision_score *= c / self.max_sensor_reach
                         if int(c) == 0:
                             # if robot hit the wall, make fitness_score zero
-                            self.sensor_score = 0
+                            self.collision_score = 0 # TODO
 
             distance_values.append(min(sensor_distances))
 

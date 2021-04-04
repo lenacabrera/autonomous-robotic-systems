@@ -40,6 +40,7 @@ class Population:
             bit497 - bit503 -> weight FOURTH hidden node to SECOND output node
 
         """
+        print("│ └─ Initialize population ...")
 
         dim_input = conf.n_sensors + conf.dim_hidden
         dim_output = 2
@@ -73,6 +74,8 @@ class Population:
     def evaluate_population(self, conf, robot, walls):
         """ Evaluates the fitness of each individual in the current population """
 
+        print("│ └─ Evaluation ...")
+
         fitness = []
         for i, individual in enumerate(self.individuals):
             ann = neural_network.ANN(conf, robot.get_sensor_distance_values(walls))
@@ -91,6 +94,8 @@ class Population:
     def selection(self, conf, method="truncated_rank_based_selection"):
         """ Selects the best performing individuals according to their fitness """
 
+        print("│ └─ Selection ...")
+
         if method == "truncated_rank_based_selection":
             # select n best performing individuals
             n_best = int(len(self.individuals) * conf.n_best_percentage)
@@ -101,6 +106,8 @@ class Population:
 
     def replacement(self, selected, method="generational_replacement"):
         """ Duplicates selected (best performing) individuals and replaces old population with new one """
+
+        print("│ └─ Replacement ...")
 
         if method == "generational_replacement":
             # replace entire population
@@ -121,99 +128,101 @@ class Population:
             self.individuals = new_population
 
 
-    def crossover_and_mutation(self, conf, bin_enc_len=7):
+    def crossover_and_mutation(self, conf):
         """ Performs crossover and mutation on individual(s) """
+        self.crossover(conf)
+        self.mutation(conf)
 
-        def crossover(self):
-            """ Recombines genotypes of two individuals to make off-spring.
-            Parents genotypes are cut at random position, switched and recombined to form child. """
+    def crossover(self, conf, bin_enc_len=7):
+        """ Recombines genotypes of two individuals to make off-spring. Parents genotypes are cut at random position,
+        switched and recombined to form child. """
 
-            n_crossover = int(int(len(self.individuals) * conf.n_best_percentage) * conf.crossover_percentage)
-            unique_individuals_tuple = list(set([tuple(g) for g in self.individuals]))
-            unique_individuals = [list(t) for t in unique_individuals_tuple]
+        print("│ └─ Crossover ...")
 
-            # create all possible crossover combinations
-            crossover_combinations = []
-            for idx_individual, individual in enumerate(unique_individuals):
-                individual = unique_individuals[idx_individual]
-                for other_individual in unique_individuals[idx_individual + 1:]:
-                    crossover_combinations.append((individual, other_individual))
+        n_crossover = int(int(len(self.individuals) * conf.n_best_percentage) * conf.crossover_percentage)
+        unique_individuals_tuple = list(set([tuple(g) for g in self.individuals]))
+        unique_individuals = [list(t) for t in unique_individuals_tuple]
 
-            while n_crossover > len(crossover_combinations) / 2:
-                n_crossover = n_crossover - 1
+        # create all possible crossover combinations
+        crossover_combinations = []
+        for idx_individual, individual in enumerate(unique_individuals):
+            individual = unique_individuals[idx_individual]
+            for other_individual in unique_individuals[idx_individual + 1:]:
+                crossover_combinations.append((individual, other_individual))
 
-            # randomly select n_crossover combinations
-            for c_combination in range(n_crossover):
+        while n_crossover > len(crossover_combinations) / 2:
+            n_crossover = n_crossover - 1
 
-                idx_combination = random.randint(0, len(crossover_combinations) - 1)
-                combination_tuple = crossover_combinations[idx_combination]
-                ind_1 = combination_tuple[0]
-                ind_2 = combination_tuple[1]
+        # randomly select n_crossover combinations
+        for c_combination in range(n_crossover):
 
-                split_position = (random.randint(1, len(self.individuals[0]) / bin_enc_len - 1) * 7) - 1
+            idx_combination = random.randint(0, len(crossover_combinations) - 1)
+            combination_tuple = crossover_combinations[idx_combination]
+            ind_1 = combination_tuple[0]
+            ind_2 = combination_tuple[1]
 
-                # do crossover
-                new_ind_1 = ind_1[0:split_position]
-                new_ind_1.extend(ind_2[split_position:])
-                new_ind_2 = ind_2[0:split_position]
-                new_ind_2.extend(ind_1[split_position:])
+            split_position = (random.randint(1, len(self.individuals[0]) / bin_enc_len - 1) * 7) - 1
 
-                # remove combination
-                crossover_combinations.pop(idx_combination)
+            # do crossover
+            new_ind_1 = ind_1[0:split_position]
+            new_ind_1.extend(ind_2[split_position:])
+            new_ind_2 = ind_2[0:split_position]
+            new_ind_2.extend(ind_1[split_position:])
 
-                # replace first individual (first occurring copy)
-                for idx_ind, individual in enumerate(self.individuals):
-                    if self.individuals[idx_ind] == ind_1:
-                        self.individuals[idx_ind] = new_ind_1
-                        break
+            # remove combination
+            crossover_combinations.pop(idx_combination)
 
-                # replace second individual (first occurring copy)
-                for idx_ind, individual in enumerate(self.individuals):
-                    if self.individuals[idx_ind] == ind_2:
-                        self.individuals[idx_ind] = new_ind_2
-                        break
+            # replace first individual (first occurring copy)
+            for idx_ind, individual in enumerate(self.individuals):
+                if self.individuals[idx_ind] == ind_1:
+                    self.individuals[idx_ind] = new_ind_1
+                    break
 
-        def mutation(self):
-            """ Mutates single individual with a specified likelihood.
-            Mutation is performed by generating random new weight to replace random old weight in genotype. """
+            # replace second individual (first occurring copy)
+            for idx_ind, individual in enumerate(self.individuals):
+                if self.individuals[idx_ind] == ind_2:
+                    self.individuals[idx_ind] = new_ind_2
+                    break
 
-            probability_range = list(range(0, 100))
-            percentage_range = probability_range[0:int(100 * conf.mutation_percentage)]
+    def mutation(self, conf, bin_enc_len=7):
+        """ Mutates single individual with a specified likelihood. Mutation is performed by flipping random bit or
+        generating random new weight to replace random old weight in genotype. """
 
-            # check if mutation should occur
-            if random.randint(0, 100) in percentage_range:
-                # select random individual
-                idx_mutant = random.randint(0, len(self.individuals)-1)
-                mutant = self.individuals[idx_mutant]
+        probability_range = list(range(0, 100))
+        percentage_range = probability_range[0:int(100 * conf.mutation_percentage)]
 
-                # pick random bit to flip
-                idx_bit = random.randint(0, len(mutant))
-                bit = mutant[idx_bit]
+        # check if mutation should occur
+        if random.randint(0, 100) in percentage_range:
+            print("│ └─ Mutation ...")
 
-                if bit == 1:
-                    mutant[idx_bit] = 0
-                    self.individuals[idx_mutant] = mutant
-                else:
-                    orig_indiv = mutant[:]
-                    mutant[idx_bit] = 1
+            # select random individual
+            idx_mutant = random.randint(0, len(self.individuals)-1)
+            mutant = self.individuals[idx_mutant]
 
-                    # check if mutation causes illegal weight
-                    binary_start_idx = idx_bit - (idx_bit % bin_enc_len)
-                    binary_end_idx = binary_start_idx + 7
-                    binary_weight_suffix = mutant[binary_start_idx:binary_end_idx]
-                    weight_suffix = 0
-                    for bit in binary_weight_suffix:
-                        weight_suffix = (weight_suffix << 1) | bit
+            # pick random bit to flip
+            idx_bit = random.randint(0, len(mutant)-1)
+            bit = mutant[idx_bit]
 
-                    if weight_suffix < 10 or binary_weight_suffix > 100:
-                        # illegal weight -> do not flip bit, use random weight instead
-                        weight_suffix_int = random.randint(1, 100)
-                        weight_suffix_bin = [int(x) for x in list('{0:0b}'.format(weight_suffix_int))]
-                        for w_idx, o_idx in enumerate(range(binary_start_idx, binary_end_idx)):
-                            orig_indiv[o_idx] = weight_suffix_bin[w_idx]
+            if bit == 1:
+                mutant[idx_bit] = 0
+                self.individuals[idx_mutant] = mutant
+            else:
+                orig_indiv = mutant[:]
+                mutant[idx_bit] = 1
 
-                    self.individuals[idx_mutant] = orig_indiv
+                # check if mutation causes illegal weight
+                binary_start_idx = idx_bit - (idx_bit % bin_enc_len)
+                binary_end_idx = binary_start_idx + 7
+                binary_weight_suffix = mutant[binary_start_idx:binary_end_idx]
+                weight_suffix = 0
+                for bit in binary_weight_suffix:
+                    weight_suffix = (weight_suffix << 1) | bit
 
-            # do crossover and mutation
-            crossover()
-            mutation()
+                if weight_suffix < 10 or weight_suffix > 100:
+                    # illegal weight -> do not flip bit, use random weight instead
+                    weight_suffix_int = random.randint(10, 100)
+                    weight_suffix_bin = [int(x) for x in list('{0:0b}'.format(weight_suffix_int))]
+                    for w_idx, o_idx in enumerate(range(binary_start_idx, binary_end_idx)):
+                        orig_indiv[o_idx] = weight_suffix_bin[w_idx]
+
+                self.individuals[idx_mutant] = orig_indiv

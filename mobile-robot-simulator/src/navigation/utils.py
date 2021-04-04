@@ -18,27 +18,31 @@ def measure_diversity(population):
     return max_distance
 
 
-def plot_avg_and_max_fitness(n_generation, avg_fitnesses, max_fitnesses):
+def plot_avg_and_max_fitness(n_generations, avg_fitnesses, max_fitnesses):
     """ Plots average and maximum fitness of all generations """
 
-    generation = list(range(n_generation))
+    generations = list(range(n_generations))
     fig, ax = plt.subplots()
-    ax.plot(generation, avg_fitnesses, marker='.', label="Average")
-    ax.plot(generation, max_fitnesses, marker='>', label="Max")
+    ax.plot(generations, avg_fitnesses, marker='.', label="Average")
+    ax.plot(generations, max_fitnesses, marker='>', label="Max")
+    ax.set_xticklabels([g + 1 for g in generations])
+    plt.xticks(generations)
     plt.xlabel("Generation")
     plt.ylabel("Fitness")
     plt.title("Performance of Evolutionary Algorithm")
     plt.legend()
+    plt.savefig('./src/navigation/plots/fitness.png')
 
 
-def plot_diversity(n_generation, diversity_measures):
+def plot_diversity(n_generations, diversity_measures):
     """ Plots diversity of all generations"""
 
-    generation = list(range(n_generation))
+    generations = list(range(n_generations))
     fig, ax = plt.subplots()
-    ax.plot(generation, diversity_measures, marker='.')
+    ax.plot(generations, diversity_measures, marker='.')
+    ax.set_xticklabels([g + 1 for g in generations])
+    plt.xticks(generations)
     plt.xlabel("Generation")
     plt.ylabel("Diversity")
     plt.title("Diversity of Evolutionary Algorithm")
-    # plt.legend()
-    plt.show()
+    plt.savefig('./src/navigation/plots/diversity.png')
