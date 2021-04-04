@@ -24,7 +24,7 @@ Additionally, it is possible to place best individual of last generation in a di
 
 #### Exemplary Navigation Simulation:
 
-![Navigation](./img/test_navigation.gif)
+![Navigation](./mobile-robot-simulator/img/test_navigation.gif)
 
 ### Localization with Kalman Filter
 
@@ -38,7 +38,7 @@ Process Noise, Measurement/Sensor noise as well as values for the covariance mat
 
 #### Exemplary Localization Simulation:
 
-![Localization](./img/localization.gif)
+![Localization](./mobile-robot-simulator/img/localization.gif)
 
 ## Particle Swarm Optimization (PSO)
 
