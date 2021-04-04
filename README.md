@@ -22,10 +22,6 @@ The navigation is optimized by an evolutionary algorithm that performs
 The simulation visualizes the performance (robot navigation) of the best performing individual after each generation. 
 Additionally, it is possible to place best individual of last generation in a different environment and test its performance there again.
 
-#### Exemplary Navigation Simulation:
-
-![Navigation](./mobile-robot-simulator/img/test_navigation.gif)
-
 ### Localization with Kalman Filter
 
 The goal of this task is to track the pose (position and orientation) of the robot navigating through the environment. The setup assumes local localization (starting position is known) and known feature correspondence (landmarks' positions are identifiable). 
@@ -36,9 +32,10 @@ In this simulation, the correction of the Kalman Filter is performed whenever ex
 
 Process Noise, Measurement/Sensor noise as well as values for the covariance matrix (uncertainty) are drawn from normal distributions (Gaussian).
 
-#### Exemplary Localization Simulation:
 
-![Localization](./mobile-robot-simulator/img/localization.gif)
+| Exemplary Navigation Simulation                                 | Exemplary Localization Simulation                              |
+| --------------------------------------------------------------- |:--------------------------------------------------------------:|
+| ![Navigation](./mobile-robot-simulator/img/test_navigation.gif) | ![Localization](./mobile-robot-simulator/img/localization.gif) |
 
 ## Particle Swarm Optimization (PSO)
 
