@@ -21,13 +21,13 @@ class Configuration:
         self.wall_length = 600
         self.wall_thickness = 6
         self.wall_color = (196, 196, 196)
-        self.room_shape = 'trapezoid'               # shape of environment: square, rectangle, rectangle_double, trapezoid, trapezoid_double
+        self.room_shape = 'square'               # shape of environment: square, rectangle, rectangle_double, trapezoid, trapezoid_double
 
         # robot
         self.x = self.env_width / 2              # x coordinate of initial position of robot
         self.y = self.env_height / 2             # y coordinate of initial position of robot
         self.radius = self.env_width / 20        # radius of robot body
-        self.position_initialization = "corner"  # robot's starting position: center, corner
+        self.position_initialization = "center"  # robot's starting position: center, corner
         self.robot_color = (0, 153, 255)
 
         # sensors
@@ -66,8 +66,8 @@ class Configuration:
         self.termination_threshold = 3           # fitness stagnation indicator
         self.dim_hidden = 4                      # memory size of ANN (neural controller)
         self.path_steps = 1                      # number of steps that robot makes in simulation (during evolution)
-        self.test_steps = 500                    # number of steps that robot makes in simulation (after evolution)
         self.save_show_all_generations = False   # animate intermediate generations during evolution
+        self.test_steps = 500                    # number of steps that robot makes in simulation (after evolution)
         self.test_different_room = True          # test best evolved individual in a different environment (after evolution)
         self.test_room = "square"             # shape of test environment
         self.covered_area_color = (204, 229, 255)
