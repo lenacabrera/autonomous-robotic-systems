@@ -1,5 +1,6 @@
 from scipy.spatial import distance
 import matplotlib.pyplot as plt
+import os
 
 
 def measure_diversity(population):
@@ -31,7 +32,8 @@ def plot_avg_and_max_fitness(n_generations, avg_fitnesses, max_fitnesses):
     plt.ylabel("Fitness")
     plt.title("Performance of Evolutionary Algorithm")
     plt.legend()
-    plt.savefig('./src/navigation/plots/fitness.png')
+    path_prefix = os.path.dirname(os.path.abspath(__file__))
+    plt.savefig(path_prefix + '/plots/fitness.png')
 
 
 def plot_diversity(n_generations, diversity_measures):
@@ -45,4 +47,5 @@ def plot_diversity(n_generations, diversity_measures):
     plt.xlabel("Generation")
     plt.ylabel("Diversity")
     plt.title("Diversity of Evolutionary Algorithm")
-    plt.savefig('./src/navigation/plots/diversity.png')
+    path_prefix = os.path.dirname(os.path.abspath(__file__))
+    plt.savefig(path_prefix + '/plots/diversity.png')

@@ -21,7 +21,7 @@ class Configuration:
         self.wall_length = 600
         self.wall_thickness = 6
         self.wall_color = (196, 196, 196)
-        self.room_shape = 'square'               # shape of environment: square, rectangle, rectangle_double, trapezoid, trapezoid_double
+        self.room_shape = 'trapezoid'               # shape of environment: square, rectangle, rectangle_double, trapezoid, trapezoid_double
 
         # robot
         self.x = self.env_width / 2              # x coordinate of initial position of robot
@@ -44,7 +44,7 @@ class Configuration:
         self.delta_t = 1                         # time step
         self.uncertainty_update = 20             # visualize uncertainty every x time steps
 
-        self.task = "localization"  # navigation, localization
+        self.task = "navigation"  # navigation, localization
 
         # localization with kalman filter (kf)
         # randomly drawing parameters from normal distribution (Gaussian) with
@@ -58,7 +58,7 @@ class Configuration:
 
         # navigation with evolutionary algorithm
         self.n_individuals = 30                  # population size
-        self.max_n_generations = 50              # max. number of generations
+        self.max_n_generations = 30              # max. number of generations
         self.fitness_strategy = 0                # 0: only covered area, 1: 0 + reward collision-free navigation
         self.n_best_percentage = 0.8             # selection rate
         self.crossover_percentage = 0.2          # crossover rate: how many of selected to crossover
@@ -81,7 +81,9 @@ def localization(conf, robot, walls, pygame, screen, timer_event):
     uncertainty_increase = 0
 
     # for saving animation
-    frame_files = ["./src/localization/gif/frame_" + str(f) + ".png" for f in range(conf.save_steps)]
+    path_prefix = os.path.dirname(os.path.abspath(__file__))
+    frame_files = ["localization/gif/frame_" + str(f) + ".png" for f in range(conf.save_steps)]
+    frame_files = [os.path.join(path_prefix, f) for f in frame_files]
     step = 0
 
     # run simulation
@@ -139,7 +141,7 @@ def localization(conf, robot, walls, pygame, screen, timer_event):
                     animation_frames = []
                     for frame_file in frame_files:
                         animation_frames.append(imageio.imread(frame_file))
-                    imageio.mimsave('./src/localization/gif/localization.gif', animation_frames)
+                    imageio.mimsave(path_prefix + "/localization/gif/localization.gif", animation_frames)
                     # remove the PNG files
                     for frame_file in frame_files:
                         os.remove(frame_file)
@@ -172,7 +174,9 @@ def navigation(conf, robot, walls, pygame, screen):
     generation_counter = 1
 
     # for saving animation
-    frame_files = ["./src/navigation/gif/frame_" + str(f) + ".png" for f in range(conf.path_steps)]
+    path_prefix = os.path.dirname(os.path.abspath(__file__))
+    frame_files = ["navigation/gif/frame_" + str(f) + ".png" for f in range(conf.path_steps)]
+    frame_files = [os.path.join(path_prefix, f) for f in frame_files]
 
     # run generation cycle
     while True:
@@ -258,7 +262,7 @@ def navigation(conf, robot, walls, pygame, screen):
                 animation_frames = []
                 for frame_file in frame_files:
                     animation_frames.append(imageio.imread(frame_file))
-                imageio.mimsave('./src/navigation/gif/generation_%s.gif' % generation_counter, animation_frames)
+                imageio.mimsave(path_prefix + "/navigation/gif/generation_%s.gif" % generation_counter, animation_frames)
 
                 # remove the PNG files
                 for frame_file in frame_files:
@@ -267,13 +271,14 @@ def navigation(conf, robot, walls, pygame, screen):
             """" PERFORMANCE OF FINAL (BEST) POPULATION """
             if conf.test_different_room:
                 # test best individual in a different room
-                print("\nChange environment... \nTest last generation ...")
+                print("\nChange environment ... \nTest last generation ...")
 
                 walls_test = environment.get_walls(conf, test_environment=conf.test_room)
                 robot_test = copy.deepcopy(robot)
 
                 # for saving animation
-                test_frame_files = ["./src/navigation/gif/frame_" + str(f) + ".png" for f in range(conf.test_steps)]
+                test_frame_files =  ["navigation/gif/frame_" + str(f) + ".png" for f in range(conf.test_steps)]
+                test_frame_files = [os.path.join(path_prefix, f) for f in test_frame_files]
 
                 test_finished = False
                 while pygame.event.get():
@@ -306,7 +311,7 @@ def navigation(conf, robot, walls, pygame, screen):
                 animation_frames = []
                 for frame_file in test_frame_files:
                     animation_frames.append(imageio.imread(frame_file))
-                imageio.mimsave('./src/navigation/gif/test_navigation.gif', animation_frames)
+                imageio.mimsave(path_prefix + "/navigation/gif/test_navigation.gif", animation_frames)
 
                 # remove the PNG files
                 for frame_file in test_frame_files:
@@ -319,7 +324,7 @@ def navigation(conf, robot, walls, pygame, screen):
             animation_frames = []
             for frame_file in frame_files:
                 animation_frames.append(imageio.imread(frame_file))
-            imageio.mimsave('./src/navigation/gif/generation_%s.gif' % generation_counter, animation_frames)
+            imageio.mimsave(path_prefix + "/navigation/gif/generation_%s.gif" % generation_counter, animation_frames)
 
             # remove the PNG files
             for frame_file in frame_files:
