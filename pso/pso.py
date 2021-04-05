@@ -5,9 +5,6 @@ import matplotlib.animation as animation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from particle import Particle
 import benchmark_functions
-from matplotlib import cm
-import numpy as np
-from celluloid import Camera
 
 
 def optimize(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delta_t, frame_range, random_init_v, v_max,
@@ -48,7 +45,7 @@ def optimize(n_particles, n_iterations, benchmark_function, a, b, c, r_max, delt
             cax.cla()
             colormesh = plot_heatmap(coordinates, fitness_landscape, ax=ax)
             fig.colorbar(colormesh, cax=cax)
-            return plot_scatter(x_iterations[i], y_iterations[i], ax=ax)
+            return plot_scatter(x_iterations[i], y_iterations[i], i, ax=ax)
 
         animation.FuncAnimation(fig, animate, blit=True)
 
@@ -123,9 +120,11 @@ def create_heatmap_data(benchmark_function, frame_range):
     return coordinates, fitness_landscape
 
 
-def plot_scatter(x, y, ax):
+def plot_scatter(x, y, i, ax):
     """ Plot particles' positions """
-    artists = [ax.scatter(x, y, c='white') for x, y in zip(x, y)]
+    artists = [ax.scatter(x, y, s=15, c='white') for x, y in zip(x, y)]
+    iteration = ax.text(3.85, 3.9, i, color='white')
+    artists.append(iteration)
     return artists
 
 
